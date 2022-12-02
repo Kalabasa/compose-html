@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["dom"],
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": {
+      "*": ["*", "../node_modules/*"]
+    },
+    "resolveJsonModule": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
