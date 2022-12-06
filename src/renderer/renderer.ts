@@ -1,4 +1,4 @@
-import { Component } from "component/compiler";
+import { Component } from "component/component";
 import {
   appendChild,
   childNodesOf,
@@ -7,12 +7,14 @@ import {
   isTemplateElement,
   parse,
 } from "dom/dom";
+import path from "node:path";
 import { createLogger } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
+import { interpolate } from "./interpolate";
 
 const SLOT_USED = Symbol("SLOT_USED");
 
-const logger = createLogger("Renderer");
+const logger = createLogger(path.basename(__filename, ".ts"));
 
 export class Renderer {
   private readonly components: Map<string, Component>;
@@ -27,7 +29,7 @@ export class Renderer {
   }
 
   render(source: Iterable<Node> | string): Node[] {
-    logger.debug("Render source", source);
+    logger.debug("Render start -", source);
 
     const nodes = parse(source);
 
@@ -36,7 +38,7 @@ export class Renderer {
       renderedNodes.push(...this.renderNode(node));
     }
 
-    logger.debug("Done", nodes, "→", renderedNodes);
+    logger.debug("Render end -", nodes, "→", renderedNodes);
     return renderedNodes;
   }
 
@@ -63,9 +65,10 @@ export class Renderer {
     attributes: NamedNodeMap,
     children: Node[]
   ): Iterable<Node> {
-    logger.debug("Component start", `<${component.name}>`);
-
+    logger.debug("Component start -", `<${component.name}>`);
     const fragment = createFragment(component.content);
+
+    interpolate(fragment.childNodes, component);
 
     const unslottedChildren: Node[] = [];
     // Key: slot name. Unnamed slot has key == "".
@@ -74,10 +77,16 @@ export class Renderer {
       fragment.querySelectorAll("slot")
     );
 
-    logger.debug("Slots", slotMap.keys());
+    logger.debug(
+      "Component start -",
+      `<${component.name}>`,
+      "slots:",
+      slotMap.keys(),
+      "children:",
+      children
+    );
 
     for (const child of children) {
-      logger.debug("Component child", child);
       let slotName: string | null;
       if (isElement(child) && (slotName = child.getAttribute("slot"))) {
         this.replaceSlot(slotMap, slotName, child);
@@ -91,7 +100,7 @@ export class Renderer {
     }
 
     logger.debug(
-      "Component done",
+      "Component done -",
       `<${component.name}>`,
       "→",
       childNodesOf(fragment)

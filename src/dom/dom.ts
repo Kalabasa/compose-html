@@ -1,11 +1,10 @@
 import { JSDOM } from "jsdom";
 
 export function parse(source: Iterable<Node> | string): Node[] {
-  if (typeof source === "string") {
-    return Array.from(JSDOM.fragment(source).childNodes);
-  } else {
-    return Array.isArray(source) ? source : Array.from(source);
+  if (typeof source !== "string") {
+    source = toHTML(source);
   }
+  return Array.from(JSDOM.fragment(source).childNodes);
 }
 
 export function createFragment(templateNodes?: Node[]): DocumentFragment {
@@ -43,8 +42,10 @@ export function isText(node: Node): boolean {
   return node.nodeType != undefined && node.nodeType === node.TEXT_NODE;
 }
 
-export function toHTML(nodes: Node[]): string {
-  return nodes
-    .map((node) => (isElement(node) ? node.outerHTML : node.textContent))
-    .join("");
+export function toHTML(nodes: Iterable<Node>): string {
+  let html = "";
+  for (const node of nodes) {
+    html += isElement(node) ? node.outerHTML : node.textContent;
+  }
+  return html.trim();
 }

@@ -1,8 +1,9 @@
-import { compile, Component } from "component/compiler";
+import { compile } from "component/compiler";
+import { Component } from "component/component";
 import { toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 
-describe("Renderer", () => {
+describe("renderer", () => {
   it("on plain HTML", () => {
     const renderer = new Renderer();
     const output = renderer.render(
@@ -65,7 +66,7 @@ function compileComponents(
   return new Map(
     Object.entries(dictionary).map(([name, source]) => [
       name,
-      compile(name, source),
+      compile(name, `${name}.html`, source),
     ])
   );
 }

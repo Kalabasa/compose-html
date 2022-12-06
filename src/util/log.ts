@@ -16,9 +16,17 @@ loglevel.methodFactory = function (methodName, logLevel, loggerName) {
   return (...msg: any[]) => {
     const context = [currentGlobalContext, currentLoggerContext, "  "]
       .filter((s) => s)
-      .join(":  ");
+      .join("  ");
 
-    const ret = originalMethod(context, ...msg.map((item) => format(item)));
+    const continuation = context.replace(/./g, " ").slice(0, -5) + "~    ";
+    const text =
+      context +
+      msg
+        .map((item) => format(item))
+        .join(" ")
+        .replace(/\n/gm, "\n" + continuation);
+
+    const ret = originalMethod(text);
 
     currentLoggerContext = undefined;
 
@@ -54,7 +62,7 @@ function format(thing: any, depth: number = 2): any {
   if (isElement(thing)) {
     return stringsTo(`Element(${thing.outerHTML})`);
   } else if (isText(thing)) {
-    return stringsTo(`Text(${thing.textContent})`);
+    return stringsTo(`Text(${JSON.stringify(thing.textContent)})`);
   } else if (
     depth > 0 &&
     (Array.isArray(thing) ||
