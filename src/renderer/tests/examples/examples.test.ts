@@ -2,10 +2,10 @@ import { compile } from "component/compiler";
 import { Component } from "component/component";
 import { childNodesOf, isElement, isText, parse, toHTML } from "dom/dom";
 import glob from "glob";
-import { dir } from "node:console";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
+import { log } from "util/log";
 
 type Example = {
   component: Component;
@@ -14,43 +14,41 @@ type ExampleWithExpectation = Example & {
   expected: Node[];
 };
 
-// beforeAll() doesn't work with async setup & dynamic tests
-const files = glob.sync(path.resolve(__dirname, "**/*.html"));
-
 // dirName -> componentName -> Component
 const componentDir = new Map<string, Map<string, Component>>();
 
-const compileExamples = files.map((filePath) => {
-  const result = compileExample(filePath).then((example) => {
-    const dirName = getDirName(filePath);
-    let componentMap = componentDir.get(dirName);
-    if (!componentMap) componentDir.set(dirName, (componentMap = new Map()));
-    componentMap.set(example.component.name, example.component);
+const examples = glob
+  .sync(path.resolve(__dirname, "**/*.html"))
+  .map((filePath) => compileExample(filePath));
 
-    console.log(`Loaded component in ${dirName}: <${example.component.name}>`);
+for (const example of examples) {
+  const dirName = getDirName(example.component.filePath);
+  let componentMap = componentDir.get(dirName);
+  if (!componentMap) componentDir.set(dirName, (componentMap = new Map()));
+  componentMap.set(example.component.name, example.component);
 
-    return example;
-  });
-  return { filePath, result };
-});
-
-const completeSetup = Promise.all(compileExamples.map(({ result }) => result));
+  log.debug(`Loaded component in ${dirName}: <${example.component.name}>`);
+}
 
 describe("Examples", () => {
-  for (const compEx of compileExamples) {
-    const { filePath } = compEx;
+  for (const example of examples) {
+    const { filePath } = example.component;
+    const isIndexHtml = filePath.endsWith("/index.html");
+
+    if (!hasExpectation(example)) {
+      if (isIndexHtml) {
+        log.warn("Example has no <expect>:", filePath);
+      }
+      return;
+    }
+
     const dirName = getDirName(filePath);
 
-    const testName = filePath.endsWith("/index.html")
+    const testName = isIndexHtml
       ? dirName
       : `${dirName} ${path.basename(filePath, ".html")}`;
 
-    test(testName, async () => {
-      await completeSetup;
-
-      const example = await compEx.result;
-      if (!hasExpectation(example)) return;
-
+    test(testName, () => {
       const { component, expected } = example;
       const renderer = new Renderer(componentDir.get(dirName));
       const output = renderer.render(component.source);
@@ -67,10 +65,8 @@ function hasExpectation(example: Example): example is ExampleWithExpectation {
   return (example as Partial<ExampleWithExpectation>).expected != undefined;
 }
 
-async function compileExample(
-  filePath: string
-): Promise<Example | ExampleWithExpectation> {
-  const sourceText = await readFile(filePath);
+function compileExample(filePath: string): Example | ExampleWithExpectation {
+  const sourceText = readFileSync(filePath);
   const sourceNodes = parse(sourceText.toString());
 
   let expected = undefined;
@@ -102,9 +98,9 @@ async function compileExample(
 
 function extractExpectedNodes(expectedElement: Element): Node[] {
   const children = Array.from(childNodesOf(expectedElement));
-  if (children.length === 0) return children;
+  if (!children.length) return [];
 
-  // immediate child element, no need to de-indent
+  // immediate child element, assume one-liner, no indent
   if (!isText(children[0])) return children;
 
   // detect indentation
@@ -112,12 +108,20 @@ function extractExpectedNodes(expectedElement: Element): Node[] {
     /^([ \t]+)/gm.exec(children[0].textContent ?? "")?.[1] ?? "";
   const indentRegExp = new RegExp("^" + indentation, "gm");
 
-  return children.map((node) => {
-    if (!isText(node)) return node;
+  return children.map((node) => deindent(node, indentRegExp, false));
+}
 
-    // remove indent due to nesting
-    const mapped = node.cloneNode(true);
-    mapped.textContent = node.textContent?.replace(indentRegExp, "") ?? null;
-    return mapped;
-  });
+function deindent(node: Node, indentRegExp: RegExp, mutate: boolean): Node {
+  const deindented = mutate ? node : node.cloneNode(true);
+
+  if (isText(node)) {
+    deindented.textContent =
+      node.textContent?.replace(indentRegExp, "") ?? null;
+  } else {
+    for (const child of childNodesOf(deindented)) {
+      deindent(child, indentRegExp, true);
+    }
+  }
+
+  return deindented;
 }

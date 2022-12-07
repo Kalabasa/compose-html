@@ -2,13 +2,13 @@ import { JSDOM } from "jsdom";
 
 export function parse(source: Iterable<Node> | string): Node[] {
   if (typeof source !== "string") {
-    source = toHTML(source);
+    source = toHTML(source, false);
   }
   return Array.from(JSDOM.fragment(source).childNodes);
 }
 
 export function createFragment(templateNodes?: Node[]): DocumentFragment {
-  return JSDOM.fragment(templateNodes ? toHTML(templateNodes) : "");
+  return JSDOM.fragment(templateNodes ? toHTML(templateNodes, false) : "");
 }
 
 export function appendChild(
@@ -42,10 +42,10 @@ export function isText(node: Node): boolean {
   return node.nodeType != undefined && node.nodeType === node.TEXT_NODE;
 }
 
-export function toHTML(nodes: Iterable<Node>): string {
+export function toHTML(nodes: Iterable<Node>, trim: boolean = true): string {
   let html = "";
   for (const node of nodes) {
     html += isElement(node) ? node.outerHTML : node.textContent;
   }
-  return html.trim();
+  return trim ? html.trim() : html;
 }

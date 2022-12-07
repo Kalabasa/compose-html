@@ -5,6 +5,7 @@ import {
   createFragment,
   isElement,
   isTemplateElement,
+  isText,
   parse,
 } from "dom/dom";
 import path from "node:path";
@@ -43,21 +44,26 @@ export class Renderer {
   }
 
   private renderNode(node: Node): Iterable<Node> {
-    // todo: props provided by component to child?
+    logger.debug("Node start -", node);
 
     const childNodes = childNodesOf(node);
     const children = childNodes.length ? this.render(childNodes) : [];
 
+    let result: Iterable<Node>;
+
     let component: Component | undefined = undefined;
-    if (!isElement(node) || !(component = this.components.get(node.tagName))) {
+    if (isElement(node) && (component = this.components.get(node.tagName))) {
+      result = this.renderComponent(component, node.attributes, children);
+    } else {
       const clone = node.cloneNode(false);
       for (const child of children) {
         appendChild(clone, child);
       }
-      return [clone];
+      result = [clone];
     }
 
-    return this.renderComponent(component, node.attributes, children);
+    logger.debug("Node end -", node, "→", result);
+    return result;
   }
 
   private renderComponent(
@@ -78,7 +84,7 @@ export class Renderer {
     );
 
     logger.debug(
-      "Component start -",
+      "Component slotting -",
       `<${component.name}>`,
       "slots:",
       slotMap.keys(),
