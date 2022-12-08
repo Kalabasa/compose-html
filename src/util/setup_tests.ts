@@ -16,5 +16,11 @@ global.console = new CustomConsole(
 import { setLogGlobalContext } from "./log";
 
 beforeEach(() => {
-  setLogGlobalContext(`[${expect.getState().currentTestName}]`.padStart(30, " "));
+  setLogGlobalContext(
+    `[${expect.getState().currentTestName}]`.padStart(30, " ")
+  );
+});
+
+afterEach(() => {
+  setLogGlobalContext(undefined);
 });

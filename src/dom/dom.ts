@@ -1,15 +1,17 @@
 import { JSDOM } from "jsdom";
 
-export function parse(source: Iterable<Node> | string): Node[] {
-  if (typeof source !== "string") {
-    source = toHTML(source, false);
-  }
-  return Array.from(JSDOM.fragment(source).childNodes);
+const sharedAPI = new JSDOM().window.document;
+
+export function parse(source: string): DocumentFragment {
+  return JSDOM.fragment(source);
 }
 
 export function createFragment(templateNodes?: Node[]): DocumentFragment {
   return JSDOM.fragment(templateNodes ? toHTML(templateNodes, false) : "");
 }
+
+export const createElement = exportAPI(sharedAPI.createElement);
+export const createTextNode = exportAPI(sharedAPI.createTextNode);
 
 export function appendChild(
   parent: Node,
@@ -30,22 +32,60 @@ export function childNodesOf(parent: Node): NodeList {
   return parent.childNodes;
 }
 
+// Non-live node list
+export function stableChildNodesOf(parent: Node): Iterable<Node> {
+  // just clone array lol
+  return Array.from(childNodesOf(parent));
+}
+
 export function isTemplateElement(node: Node): node is HTMLTemplateElement {
   return isElement(node) && node.tagName === "TEMPLATE";
 }
 
-export function isElement(node: Node): node is Element {
-  return node.nodeType != undefined && node.nodeType === node.ELEMENT_NODE;
+export function isElement(node: any): node is Element {
+  return (
+    node?.nodeType != undefined &&
+    (node as Node).nodeType === (node as Node).ELEMENT_NODE
+  );
 }
 
-export function isText(node: Node): boolean {
-  return node.nodeType != undefined && node.nodeType === node.TEXT_NODE;
+export function isText(node: any): node is Text {
+  return (
+    node?.nodeType != undefined &&
+    (node as Node).nodeType === (node as Node).TEXT_NODE
+  );
 }
 
-export function toHTML(nodes: Iterable<Node>, trim: boolean = true): string {
+export function isDocumentFragment(node: any): node is DocumentFragment {
+  return (
+    node?.nodeType != undefined &&
+    (node as Node).nodeType === (node as Node).DOCUMENT_FRAGMENT_NODE
+  );
+}
+
+export function toHTML(
+  nodes: Node | Iterable<Node>,
+  trim: boolean = true
+): string {
   let html = "";
-  for (const node of nodes) {
-    html += isElement(node) ? node.outerHTML : node.textContent;
+
+  if (isDocumentFragment(nodes)) {
+    return toHTML(childNodesOf(nodes), trim);
+  } else if (isIterable(nodes)) {
+    for (const item of nodes) {
+      html += toHTML(item, false);
+    }
+  } else {
+    html = isElement(nodes) ? nodes.outerHTML : nodes.textContent ?? "";
   }
+
   return trim ? html.trim() : html;
+}
+
+function isIterable(obj: any): obj is Iterable<any> {
+  return typeof (obj as Iterable<any>)[Symbol.iterator] === "function";
+}
+
+function exportAPI<T extends Function>(func: T): T {
+  return func.bind(sharedAPI);
 }

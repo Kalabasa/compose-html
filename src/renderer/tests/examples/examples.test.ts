@@ -5,7 +5,7 @@ import glob from "glob";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
-import { log } from "util/log";
+import { createLogger } from "util/log";
 
 type Example = {
   component: Component;
@@ -13,6 +13,8 @@ type Example = {
 type ExampleWithExpectation = Example & {
   expected: Node[];
 };
+
+const logger = createLogger(path.basename(__filename));
 
 // dirName -> componentName -> Component
 const componentDir = new Map<string, Map<string, Component>>();
@@ -23,11 +25,21 @@ const examples = glob
 
 for (const example of examples) {
   const dirName = getDirName(example.component.filePath);
+
   let componentMap = componentDir.get(dirName);
   if (!componentMap) componentDir.set(dirName, (componentMap = new Map()));
   componentMap.set(example.component.name, example.component);
 
-  log.debug(`Loaded component in ${dirName}: <${example.component.name}>`);
+  logger.debug(`Loaded component in ${dirName}: <${example.component.name}>`);
+
+  const isIndexHtml = example.component.filePath.endsWith("/index.html");
+
+  if (isIndexHtml && !hasExpectation(example)) {
+    logger.warn(
+      "Example has no <expect>:",
+      path.relative(__dirname, example.component.filePath)
+    );
+  }
 }
 
 describe("Examples", () => {
@@ -35,12 +47,7 @@ describe("Examples", () => {
     const { filePath } = example.component;
     const isIndexHtml = filePath.endsWith("/index.html");
 
-    if (!hasExpectation(example)) {
-      if (isIndexHtml) {
-        log.warn("Example has no <expect>:", filePath);
-      }
-      return;
-    }
+    if (!hasExpectation(example)) continue;
 
     const dirName = getDirName(filePath);
 
@@ -51,23 +58,15 @@ describe("Examples", () => {
     test(testName, () => {
       const { component, expected } = example;
       const renderer = new Renderer(componentDir.get(dirName));
-      const output = renderer.render(component.source);
-      expect(toHTML(output)).toBe(toHTML(expected!));
+      const output = renderer.render(component);
+      expect(toHTML(output).trim()).toBe(toHTML(expected!).trim());
     });
   }
 });
 
-function getDirName(filePath: string) {
-  return path.relative(__dirname, path.dirname(filePath));
-}
-
-function hasExpectation(example: Example): example is ExampleWithExpectation {
-  return (example as Partial<ExampleWithExpectation>).expected != undefined;
-}
-
 function compileExample(filePath: string): Example | ExampleWithExpectation {
   const sourceText = readFileSync(filePath);
-  const sourceNodes = parse(sourceText.toString());
+  const sourceNodes = [...childNodesOf(parse(sourceText.toString()))];
 
   let expected = undefined;
 
@@ -87,7 +86,7 @@ function compileExample(filePath: string): Example | ExampleWithExpectation {
   const component = compile(
     path.basename(filePath, ".html"),
     filePath,
-    sourceNodes
+    toHTML(sourceNodes)
   );
 
   return {
@@ -124,4 +123,12 @@ function deindent(node: Node, indentRegExp: RegExp, mutate: boolean): Node {
   }
 
   return deindented;
+}
+
+function getDirName(filePath: string) {
+  return path.relative(__dirname, path.dirname(filePath));
+}
+
+function hasExpectation(example: Example): example is ExampleWithExpectation {
+  return (example as Partial<ExampleWithExpectation>).expected != undefined;
 }

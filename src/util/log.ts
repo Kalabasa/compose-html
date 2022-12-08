@@ -1,6 +1,8 @@
 import util from "node:util";
 import loglevel from "loglevel";
-import { isElement, isText } from "dom/dom";
+import { highlight } from "cli-highlight";
+import { isDocumentFragment, isElement, isText, toHTML } from "dom/dom";
+import { isRawHTML } from "renderer/vm";
 
 let currentGlobalContext: string | undefined = undefined;
 let currentLoggerContext: string | undefined = undefined;
@@ -59,31 +61,44 @@ export function createLogger(context?: string | Function) {
 function format(thing: any, depth: number = 2): any {
   if (!thing) return thing;
 
-  if (isElement(thing)) {
-    return stringsTo(`Element(${thing.outerHTML})`);
+  if (isDocumentFragment(thing)) {
+    return asIs(`DocumentFragment(${formatHTMLValue(toHTML(thing))})`);
+  } else if (isElement(thing)) {
+    return asIs(`Element(${formatHTMLValue(thing.outerHTML)})`);
   } else if (isText(thing)) {
-    return stringsTo(`Text(${JSON.stringify(thing.textContent)})`);
+    return asIs(`Text(${JSON.stringify(thing.textContent)})`);
+  } else if (isRawHTML(thing)) {
+    return asIs(`html(${formatHTMLValue(thing.html)})`);
   } else if (
     depth > 0 &&
     (Array.isArray(thing) ||
       (typeof thing === "object" && Symbol.iterator in thing))
   ) {
     return formatIterable(thing, depth);
+  } else if (typeof thing === "object") {
+    return toString(thing);
   }
 
   return thing;
 }
 
-function formatIterable(ite: Iterable<any>, depth: number): object {
-  const str = toString([...ite].map((item) => format(item, depth - 1)));
-  return stringsTo("{" + str.substring(1, str.length - 1) + "}");
+function formatHTMLValue(html: string): string {
+  html = html.trim();
+  if (html.includes("\n")) {
+    html = ["", ...html.split("\n")].join("\n  ") + "\n";
+  }
+  return highlight(html, { language: "html" });
 }
 
-function stringsTo(str: string): object {
-  return Object.create({
-    toString: () => str,
-    [util.inspect.custom]: () => str,
-  });
+function formatIterable(ite: Iterable<any>, depth: number): String {
+  const arrayString = toString([...ite].map((item) => format(item, depth - 1)));
+  return asIs("{" + arrayString.substring(1, arrayString.length - 1) + "}");
+}
+
+function asIs(str: string): String {
+  const newStr = new String(str);
+  (newStr as any)[util.inspect.custom] = () => str;
+  return newStr;
 }
 
 function toString(thing: any): string {

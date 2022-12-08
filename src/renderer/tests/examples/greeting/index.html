@@ -1,0 +1,14 @@
+<div>{greet()}, {name}</div>
+
+<script static>
+  const name = "Foobar";
+
+  function greet() {
+    const isMorning = true;
+    return isMorning ? "Good morning" : "Good evening";
+  }
+</script>
+
+<expect>
+  <div>Good morning, Foobar</div>
+</expect>

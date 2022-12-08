@@ -1,11 +1,12 @@
 // todo: props type generic
 
+// Don't mutate the inner objects, or use nodes to add to a different parent
 export interface Component {
-  name: string;
-  filePath: string;
-  source: Node[];
-  content: Node[];
-  scripts: HTMLScriptElement[];
-  clientScripts: HTMLScriptElement[];
-  styles: HTMLStyleElement[];
+  readonly name: string;
+  readonly filePath: string;
+  readonly source: DocumentFragment;
+  readonly content:  DocumentFragment;
+  readonly staticScripts: ReadonlyArray<HTMLScriptElement>;
+  readonly clientScripts: ReadonlyArray<HTMLScriptElement>;
+  readonly styles: ReadonlyArray<HTMLStyleElement>;
 }
