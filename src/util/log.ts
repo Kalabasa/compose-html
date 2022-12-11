@@ -36,7 +36,10 @@ loglevel.methodFactory = function (methodName, logLevel, loggerName) {
   };
 };
 
-loglevel.setLevel(loglevel.levels.DEBUG);
+loglevel.setLevel(
+  (loglevel.levels as any)[process.env.LOGLEVEL ?? "DEBUG"] ??
+    loglevel.levels.DEBUG
+);
 
 export const log = loglevel;
 
@@ -71,12 +74,12 @@ function format(thing: any, depth: number = 2): any {
     return asIs(`html(${formatHTMLValue(thing.html)})`);
   } else if (
     depth > 0 &&
-    (Array.isArray(thing) ||
-      (typeof thing === "object" && Symbol.iterator in thing))
+    typeof thing === "object" &&
+    Symbol.iterator in thing
   ) {
     return formatIterable(thing, depth);
   } else if (typeof thing === "object") {
-    return toString(thing);
+    return asIs(toString(thing));
   }
 
   return thing;
@@ -92,7 +95,11 @@ function formatHTMLValue(html: string): string {
 
 function formatIterable(ite: Iterable<any>, depth: number): String {
   const arrayString = toString([...ite].map((item) => format(item, depth - 1)));
-  return asIs("{" + arrayString.substring(1, arrayString.length - 1) + "}");
+  if (Array.isArray(ite)) {
+    return asIs(arrayString);
+  } else {
+    return asIs("{" + arrayString.substring(1, arrayString.length - 1) + "}");
+  }
 }
 
 function asIs(str: string): String {

@@ -1,12 +1,9 @@
-import { createElement, createFragment, toHTML } from "dom/dom";
+import { toHTML } from "dom/dom";
+import { JSDOM } from "jsdom";
 
 describe("dom", () => {
   it("toHTML", () => {
-    const fragment = createFragment();
-    const el = createElement("div");
-    el.textContent = "Hello";
-    fragment.appendChild(el);
-
+    const fragment = JSDOM.fragment("<div>Hello</div>");
     expect(toHTML(fragment)).toBe("<div>Hello</div>");
   });
 });

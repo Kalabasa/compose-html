@@ -1,13 +1,13 @@
 import { JSDOM } from "jsdom";
+import { isIterable } from "../util/is_iterable";
 
-const sharedAPI = new JSDOM().window.document;
+const sharedAPI = new JSDOM("<dummy/>", { contentType: "text/html" }).window
+  .document;
 
 export function parse(source: string): DocumentFragment {
-  return JSDOM.fragment(source);
-}
-
-export function createFragment(templateNodes?: Node[]): DocumentFragment {
-  return JSDOM.fragment(templateNodes ? toHTML(templateNodes, false) : "");
+  const template = sharedAPI.createElement("template");
+  template.innerHTML = source;
+  return template.content;
 }
 
 export const createElement = exportAPI(sharedAPI.createElement);
@@ -40,6 +40,12 @@ export function stableChildNodesOf(parent: Node): Iterable<Node> {
 
 export function isTemplateElement(node: Node): node is HTMLTemplateElement {
   return isElement(node) && node.tagName === "TEMPLATE";
+}
+
+export function isNode(node: any): node is Node {
+  return (
+    node?.nodeType != undefined && typeof (node as Node).nodeType === "number"
+  );
 }
 
 export function isElement(node: any): node is Element {
@@ -80,10 +86,6 @@ export function toHTML(
   }
 
   return trim ? html.trim() : html;
-}
-
-function isIterable(obj: any): obj is Iterable<any> {
-  return typeof (obj as Iterable<any>)[Symbol.iterator] === "function";
 }
 
 function exportAPI<T extends Function>(func: T): T {

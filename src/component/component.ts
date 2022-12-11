@@ -9,4 +9,5 @@ export interface Component {
   readonly staticScripts: ReadonlyArray<HTMLScriptElement>;
   readonly clientScripts: ReadonlyArray<HTMLScriptElement>;
   readonly styles: ReadonlyArray<HTMLStyleElement>;
+  readonly htmlLiterals: ReadonlyArray<DocumentFragment>;
 }

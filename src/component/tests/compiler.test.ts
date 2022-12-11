@@ -63,6 +63,18 @@ describe("compiler", () => {
     );
   });
 
+  it("on dynamic attribute shorthand", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `<span :class="getClass()">Chameleon</span>`
+    );
+
+    expect(toHTML(component.content)).toBe(
+      `<span class="{getClass()}">Chameleon</span>`
+    );
+  });
+
   it("on script with return", () => {
     const component = compile(
       "test",
@@ -97,5 +109,64 @@ describe("compiler", () => {
     expect(toHTML(component.content)).toBe(
       `Primes: <script render="gen">yield* computePrimes(5)</script>`
     );
+  });
+  
+  it("on script with HTML literal", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `12:00 <script render>canEdit ? (<button>Edit</button>) : ""</script>`
+    );
+
+    expect(component.htmlLiterals).toHaveLength(1);
+    expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
+    expect(toHTML(component.content)).toBe(
+      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
+    );
+  });
+
+  it("on shorthand with HTML literal", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `12:00 {canEdit ? (<button>Edit</button>) : ""}`
+    );
+
+    expect(component.htmlLiterals).toHaveLength(1);
+    expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
+    expect(toHTML(component.content)).toBe(
+      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
+    );
+  });
+
+  it("on shorthand with HTML literal with shorthand", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `12:00 {canEdit ? (<button>{strings.edit}</button>) : ""}`
+    );
+
+    expect(component.htmlLiterals).toHaveLength(1);
+    expect(toHTML(component.htmlLiterals[0])).toBe(
+      `<button><script render="expr">strings.edit</script></button>`
+    );
+    expect(toHTML(component.content)).toBe(
+      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
+    );
+  });
+
+  it("on shorthand with HTML literal with shorthand with HTML literal", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `{"Here " + (<b>we {"go " + (<i>again!</i>)}</b>)}`
+    );
+
+    expect(component.htmlLiterals).toHaveLength(2);
+    expect(toHTML(component.htmlLiterals[0])).toBe(
+      `<b>we <script render="expr">"go " +  (__renderHTMLLiteral__(1)) </script></b>`
+    );
+    expect(toHTML(component.htmlLiterals[1])).toBe(`<i>again!</i>`);
+    expect(toHTML(component.content)).toBe(`<script render="expr">"Here " +  (__renderHTMLLiteral__(0)) </script>`);
   });
 });

@@ -1,5 +1,6 @@
 import { compile } from "component/compiler";
 import { childNodesOf, parse, toHTML } from "dom/dom";
+import { Renderer } from "renderer/renderer";
 import { renderComponent } from "renderer/render_component";
 
 describe("render_component", () => {
@@ -9,7 +10,7 @@ describe("render_component", () => {
       "test.html",
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
     );
-    const output = renderComponent(component, [], []);
+    const output = renderComponent(component, [], [], new Renderer());
 
     expect(toHTML(output)).toBe(
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
@@ -29,7 +30,8 @@ describe("render_component", () => {
         ...childNodesOf(
           parse(`<template slot="header">Hello</template>What's up?`)
         ),
-      ]
+      ],
+      new Renderer()
     );
 
     expect(toHTML(output)).toBe(

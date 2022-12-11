@@ -1,17 +1,34 @@
+import {
+  SCRIPT_DELIMITER_CLOSE,
+  SCRIPT_DELIMITER_OPEN,
+} from "component/compiler";
 import { Component } from "component/component";
-import { childNodesOf, isElement, parse, stableChildNodesOf } from "dom/dom";
+import {
+  childNodesOf,
+  isElement,
+  isNode,
+  parse,
+  stableChildNodesOf,
+} from "dom/dom";
 import path from "node:path";
+import { isIterable } from "util/is_iterable";
 import { createLogger } from "util/log";
 import { check } from "util/preconditions";
+import { Renderer } from "./renderer";
 import { createVM, isRawHTML } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
 export function renderScripts(
   inOutFragment: DocumentFragment,
-  component: Component
+  component: Component,
+  attrs: Record<string, any>,
+  renderer: Renderer
 ): void {
-  const vm = createVM(component);
+  const vm = createVM(component, attrs, {
+    __renderHTMLLiteral__: (index: number) =>
+      renderer.renderList(childNodesOf(component.htmlLiterals[index])),
+  });
 
   const scriptCode = component.staticScripts
     .map((el) => el.textContent)
@@ -27,18 +44,47 @@ export function renderScripts(
 }
 
 function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
-  if (
-    isElement(inOutNode) &&
-    inOutNode.tagName === "SCRIPT" &&
-    inOutNode.hasAttribute("render")
-  ) {
-    renderScriptElement(inOutNode as HTMLScriptElement, runCode);
-    return;
+  if (isElement(inOutNode)) {
+    renderElementAttrs(inOutNode, runCode);
+
+    if (inOutNode.tagName === "SCRIPT" && inOutNode.hasAttribute("render")) {
+      renderScriptElement(inOutNode as HTMLScriptElement, runCode);
+      return;
+    }
   }
 
   for (const childNode of stableChildNodesOf(inOutNode)) {
     renderNode(childNode, runCode);
   }
+}
+
+function renderElementAttrs(
+  inOutElement: Element,
+  runCode: (code: string) => unknown
+) {
+  for (const attr of Array.from(inOutElement.attributes)) {
+    let renderedAttrValue = renderAttrValueIfDynamic(attr.value, runCode);
+    if (renderedAttrValue) {
+      inOutElement.setAttribute(attr.name, renderedAttrValue.value);
+    }
+  }
+}
+
+function renderAttrValueIfDynamic(
+  attrValue: string,
+  runCode: (code: string) => unknown
+): { value: string } | undefined {
+  const marked =
+    attrValue.startsWith(SCRIPT_DELIMITER_OPEN) &&
+    attrValue.endsWith(SCRIPT_DELIMITER_CLOSE);
+
+  if (!marked) return undefined;
+
+  const expr = attrValue.slice(1, -1);
+  const newValue = String(runCode(expr));
+
+  logger.debug("rendered attr", `"${attrValue}"`, "→", `"${newValue}"`);
+  return { value: newValue };
 }
 
 function renderScriptElement(
@@ -52,9 +98,15 @@ function renderScriptElement(
   inOutElement.replaceWith(...unwrapResults(results));
 }
 
-function* unwrapResults(results: any[]): Generator<string | Node> {
+function* unwrapResults(results: Iterable<any>): Generator<string | Node> {
   for (const result of results) {
-    if (isRawHTML(result)) {
+    if (typeof result === "string" || result instanceof String) {
+      yield String(result);
+    } else if (isIterable(result)) {
+      yield* unwrapResults(result);
+    } else if (isNode(result)) {
+      yield result;
+    } else if (isRawHTML(result)) {
       for (const node of childNodesOf(parse(result.html))) {
         yield node;
       }

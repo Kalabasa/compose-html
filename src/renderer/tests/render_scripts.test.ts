@@ -2,6 +2,7 @@ import { compile, compileFile } from "component/compiler";
 import { Component } from "component/component";
 import { parse, toHTML } from "dom/dom";
 import path from "node:path";
+import { Renderer } from "renderer/renderer";
 import { renderScripts } from "renderer/render_scripts";
 
 describe("render_scripts", () => {
@@ -20,7 +21,7 @@ describe("render_scripts", () => {
       `<div>One plus one is <script render="expr">1 + 1</script>.</div>`
     );
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("<div>One plus one is 2.</div>");
   });
@@ -30,9 +31,19 @@ describe("render_scripts", () => {
       `<div>Foo? <script render="expr">foo</script>.</div>`
     );
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("<div>Foo? 42.</div>");
+  });
+
+  it("reads attribute", () => {
+    const content = parse(
+      `<div>Yeah? <script render="expr">attrs.yeah</script>.</div>`
+    );
+
+    renderScripts(content, component, { yeah: "Nah" }, new Renderer());
+
+    expect(toHTML(content)).toBe("<div>Yeah? Nah.</div>");
   });
 
   it("renders html template literal", () => {
@@ -40,7 +51,7 @@ describe("render_scripts", () => {
       '<script render="expr">html`<p>literally ${foo}</p>`</script>'
     );
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("<p>literally 42</p>");
   });
@@ -53,7 +64,7 @@ describe("render_scripts", () => {
       `<script static>function bar() { return "Hey!"; }</script>`
     );
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("Hey!");
   });
@@ -72,7 +83,7 @@ describe("render_scripts", () => {
 </script>`
     );
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("a/b");
   });
@@ -82,7 +93,7 @@ describe("render_scripts", () => {
     const content = parse(`<script render="expr">bar</script>`);
     const component = compileFile(filePath);
 
-    renderScripts(content, component);
+    renderScripts(content, component, {}, new Renderer());
 
     expect(toHTML(content)).toBe("88");
   });

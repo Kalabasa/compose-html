@@ -1,0 +1,11 @@
+<script render>
+  isImg(attrs.src)
+    ? (<img class="media-element" src="{attrs.src}" />)
+    : (<video class="media-element" src="{attrs.src}"></video>)
+</script>
+
+<script static>
+  function isImg(src) {
+    return src.endsWith(".jpg");
+  }
+</script>

@@ -1,13 +1,11 @@
 import { Component } from "component/component";
 import {
-  createFragment,
-  isElement,
-  childNodesOf,
-  isTemplateElement,
+  childNodesOf, isElement, isTemplateElement
 } from "dom/dom";
 import path from "node:path";
 import { createLogger } from "util/log";
-import { checkNotNull, check } from "util/preconditions";
+import { check, checkNotNull } from "util/preconditions";
+import { Renderer } from "./renderer";
 import { renderScripts } from "./render_scripts";
 
 const SLOT_USED = Symbol("SLOT_USED");
@@ -16,13 +14,14 @@ const logger = createLogger(path.basename(__filename, ".ts"));
 
 export function renderComponent(
   component: Component,
-  attributes: Iterable<Attr>,
-  children: Node[]
+  attrs: Record<string, any>,
+  children: Node[],
+  renderer: Renderer,
 ): Iterable<Node> {
   logger.debug("Component start -", `<${component.name}>`);
   const fragment = component.content.cloneNode(true) as DocumentFragment;
 
-  renderScripts(fragment, component);
+  renderScripts(fragment, component, attrs, renderer);
 
   const unslottedChildren: Node[] = [];
   // Key: slot name. Unnamed slot has key == "".

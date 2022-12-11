@@ -2,16 +2,22 @@ import { Component } from "component/component";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 
-export function createVM(component: Component): {
+export function createVM(
+  component: Component,
+  attrs: Record<string, any>,
+  context: Record<string, any>,
+): {
   runCode: (code: string) => unknown;
 } {
-  const context = createContext({
+  const fullContext = createContext({
     require: wrapRequire(require, component.filePath),
     html: htmlTag,
+    attrs,
+    ...context,
   });
 
   const runCode = (code: string) =>
-    runInContext(code, context, { filename: component.filePath });
+    runInContext(code, fullContext, { filename: component.filePath });
 
   return { runCode };
 }
