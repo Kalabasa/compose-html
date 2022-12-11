@@ -1,7 +1,7 @@
 import { Component } from "component/component";
-import { appendChild, childNodesOf, isElement } from "dom/dom";
+import { appendChild, childNodesOf, isElement, toHTML } from "dom/dom";
 import path from "node:path";
-import { createLogger } from "util/log";
+import { createLogger, formatHTMLValue } from "util/log";
 import { mapAttrs } from "./attr_helpers";
 import { renderComponent } from "./render_component";
 
@@ -20,16 +20,32 @@ export class Renderer {
   }
 
   render(component: Component): Node[] {
-    logger.debug("Render start -", `<${component.name}>`);
+    logger.debug(
+      "====== render start ======",
+      "\nroot component:",
+      component.name,
+      "\n\n\b",
+      formatHTMLValue(toHTML(component.content)),
+      "\n"
+    );
 
     const result = this.renderList(renderComponent(component, [], [], this));
 
-    logger.debug("Render end -", childNodesOf(component.content), "→", result);
+    logger.debug("");
+    logger.debug(
+      "====== render done ======",
+      "\nroot component:",
+      component.name,
+      "\n\n\b",
+      formatHTMLValue(toHTML(result)),
+      "\n"
+    );
     return result;
   }
 
   renderNode(node: Node): Node[] {
-    logger.debug("Node start -", node);
+    logger.debug(node);
+    logger.group();
 
     const children = this.renderList(childNodesOf(node));
 
@@ -52,7 +68,7 @@ export class Renderer {
       result = [clone];
     }
 
-    logger.debug("Node end -", node, "→", result);
+    logger.groupEnd();
     return result;
   }
 

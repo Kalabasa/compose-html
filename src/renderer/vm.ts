@@ -1,11 +1,12 @@
 import { Component } from "component/component";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
+import { rawHTML, RawHTML, rawHTMLSymbol } from "./raw_html";
 
 export function createVM(
   component: Component,
   attrs: Record<string, any>,
-  context: Record<string, any>,
+  context: Record<string, any>
 ): {
   runCode: (code: string) => unknown;
 } {
@@ -22,17 +23,6 @@ export function createVM(
   return { runCode };
 }
 
-const rawHTMLSymbol = Symbol("rawHTML");
-
-export type RawHTML = {
-  [rawHTMLSymbol]: true;
-  html: string;
-};
-
-export function isRawHTML(thing: any): thing is RawHTML {
-  return typeof thing === "object" && rawHTMLSymbol in thing;
-}
-
 function htmlTag(segments: string[], ...expressions: any[]): RawHTML {
   const parts: string[] = [];
 
@@ -44,7 +34,7 @@ function htmlTag(segments: string[], ...expressions: any[]): RawHTML {
     }
   });
 
-  return { [rawHTMLSymbol]: true, html: parts.join("") };
+  return rawHTML(parts.join(""));
 }
 
 function wrapRequire(require: NodeRequire, filePath: string): NodeRequire {

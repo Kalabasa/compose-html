@@ -12,12 +12,12 @@ import {
 } from "dom/dom";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { createLogger } from "util/log";
+import { createLogger, formatHTMLValue } from "util/log";
 import { check } from "util/preconditions";
-import { TextProcessor } from "./text_processor";
 import { findDelimiters } from "./find_delimiters";
-import { detectScriptBehavior } from "./script_helpers";
 import { NodeListBuilder } from "./node_list_builder";
+import { detectScriptBehavior } from "./script_helpers";
+import { TextProcessor } from "./text_processor";
 
 export const SCRIPT_DELIMITER_OPEN = "{";
 export const SCRIPT_DELIMITER_CLOSE = "}";
@@ -55,7 +55,8 @@ export function compile(
     name,
     "\nfile path:",
     filePath,
-    "\n\n" + source.trim(),
+    "\n\n\b",
+    formatHTMLValue(source.trim()),
     "\n"
   );
 
@@ -65,8 +66,10 @@ export function compile(
   const context = processNode(content);
 
   context.htmlLiterals.forEach((htmlLiteral, index) => {
-    logger.debug("post-processing HTML literal", index);
+    logger.debug("post-process HTML literal", index);
+    logger.group();
     processNode(htmlLiteral, context);
+    logger.groupEnd();
   });
 
   trim(content);
@@ -83,6 +86,8 @@ export function compile(
     styles,
     htmlLiterals,
   };
+
+  logger.debug("");
   logger.debug(
     "====== compile done ======",
     "\ncontent:",
@@ -109,7 +114,8 @@ function processNode(
     htmlLiterals: [],
   }
 ) {
-  logger.debug("processing node:", node);
+  logger.debug("process node:", node);
+  logger.group();
 
   let consumed = false;
 
@@ -119,11 +125,15 @@ function processNode(
 
   const removed = !node.parentNode && !isDocumentFragment(node);
   if (removed) {
-    logger.debug("  removed from content");
+    logger.debug("removed from content");
+    logger.groupEnd();
   } else if (consumed) {
-    logger.debug("  consumed; ignoring subnodes");
+    logger.debug("consumed; ignore subnodes");
+    logger.groupEnd();
   } else {
     processShorthands(node, context);
+
+    logger.groupEnd();
 
     for (const child of stableChildNodesOf(node)) {
       processNode(child, context);
@@ -162,9 +172,11 @@ function processShorthands(node: Node, context: Context): boolean {
         const scriptElement = createElement("script");
         scriptElement.setAttribute("render", "");
         scriptElement.appendChild(createTextNode(code));
-        logger.debug(`  converting shorthand {${code}}`);
+        logger.debug(`convert shorthand {${code}}`);
+        logger.group();
         processRenderScript(scriptElement, context);
-        logger.debug("  converted shorthand →", scriptElement);
+        logger.debug("converted shorthand →", scriptElement);
+        logger.groupEnd();
 
         builder.append(scriptElement);
 
@@ -237,7 +249,7 @@ function processElementAttrs(element: Element) {
       value = SCRIPT_DELIMITER_OPEN + attr.value + SCRIPT_DELIMITER_CLOSE;
 
       logger.debug(
-        "  converting attr shorthand",
+        "convert attr shorthand",
         `${attr.name}="${attr.value}"`,
         "→",
         `${name}="${value}"`
@@ -275,7 +287,7 @@ function processScriptRenderAttribute(script: HTMLScriptElement) {
     script.setAttribute("render", "expr");
   }
   logger.debug(
-    "  auto-detected render type as",
+    "auto-detected render type as",
     `render="${script.getAttribute("render")}"`
   );
 }
@@ -307,11 +319,7 @@ function processScriptHtmlLiterals(
 
         const htmlLiteralExpr = addHtmlLiteral(html, context);
 
-        logger.debug(
-          `  converted HTML literal (${html})`,
-          "→",
-          htmlLiteralExpr
-        );
+        logger.debug(`converted HTML literal (${html})`, "→", htmlLiteralExpr);
 
         builder.append(htmlLiteralExpr);
       }

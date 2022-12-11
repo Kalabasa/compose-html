@@ -12,6 +12,7 @@ type Example = {
 };
 type ExampleWithExpectation = Example & {
   expected: Node[];
+  skip: boolean;
 };
 
 const logger = createLogger(path.basename(__filename));
@@ -55,7 +56,9 @@ describe("Examples", () => {
       ? dirName
       : `${dirName} ${path.basename(filePath, ".html")}`;
 
-    test(testName, () => {
+    const testFunc = example.skip ? test.skip : test;
+
+    testFunc(testName, () => {
       const { component, expected } = example;
       const renderer = new Renderer(componentDir.get(dirName));
       const output = renderer.render(component);
@@ -69,6 +72,7 @@ function compileExample(filePath: string): Example | ExampleWithExpectation {
   const sourceNodes = [...childNodesOf(parse(sourceText.toString()))];
 
   let expected = undefined;
+  let skip = undefined;
 
   for (let i = sourceNodes.length - 1; i--; i >= 0) {
     const node = sourceNodes[i];
@@ -77,6 +81,7 @@ function compileExample(filePath: string): Example | ExampleWithExpectation {
       if (expected) throw new Error("Only one <expect> is expected.");
 
       expected = extractExpectedNodes(node);
+      skip = node.hasAttribute("skip");
 
       node.remove();
       sourceNodes.splice(i, 1);
@@ -92,6 +97,7 @@ function compileExample(filePath: string): Example | ExampleWithExpectation {
   return {
     component,
     expected,
+    skip,
   };
 }
 

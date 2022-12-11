@@ -12,10 +12,11 @@ import {
 } from "dom/dom";
 import path from "node:path";
 import { isIterable } from "util/is_iterable";
-import { createLogger } from "util/log";
+import { createLogger, formatJSValue } from "util/log";
 import { check } from "util/preconditions";
+import { isRawHTML } from "./raw_html";
 import { Renderer } from "./renderer";
-import { createVM, isRawHTML } from "./vm";
+import { createVM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
@@ -34,7 +35,10 @@ export function renderScripts(
     .map((el) => el.textContent)
     .join("\n");
   if (scriptCode) {
-    logger.debug("Run static script -", "\n" + scriptCode.trim());
+    logger.debug(
+      "run static script:\n" +
+        formatJSValue(scriptCode.replace(/^\s*\n|\s+$/g, ""))
+    );
     vm.runCode(scriptCode);
   }
 
@@ -83,7 +87,7 @@ function renderAttrValueIfDynamic(
   const expr = attrValue.slice(1, -1);
   const newValue = String(runCode(expr));
 
-  logger.debug("rendered attr", `"${attrValue}"`, "→", `"${newValue}"`);
+  logger.debug("rendered attr:", `"${attrValue}"`, "→", `"${newValue}"`);
   return { value: newValue };
 }
 
@@ -92,10 +96,12 @@ function renderScriptElement(
   runCode: (code: string) => unknown
 ) {
   const code = inOutElement.innerHTML;
-  logger.debug("Render script -", code);
-  const results = runCode(wrapCode(code, inOutElement)) as any[];
-  logger.debug("Render result -", results);
-  inOutElement.replaceWith(...unwrapResults(results));
+  logger.debug("render script:", formatJSValue(code.replace(/\n/g, " ")));
+  const results = Array.from(
+    unwrapResults(runCode(wrapCode(code, inOutElement)) as any[])
+  );
+  logger.debug("render result:", results);
+  inOutElement.replaceWith(...results);
 }
 
 function* unwrapResults(results: Iterable<any>): Generator<string | Node> {

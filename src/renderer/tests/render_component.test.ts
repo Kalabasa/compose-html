@@ -38,4 +38,22 @@ describe("render_component", () => {
       `<div class="header"><h1>Hello</h1></div><p>What's up?</p>`
     );
   });
+
+  it("with slot fallbacks", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `<p><slot name="content">Uh oh</slot></p>`
+    );
+    const output = renderComponent(
+      component,
+      [],
+      [],
+      new Renderer()
+    );
+
+    expect(toHTML(output)).toBe(
+      `<p>Uh oh</p>`
+    );
+  });
 });

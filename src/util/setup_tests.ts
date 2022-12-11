@@ -1,24 +1,15 @@
-import { CustomConsole, LogType, LogMessage } from "@jest/console";
-
-function simpleFormatter(type: LogType, message: LogMessage): string {
-  return message
-    .split(/\n/)
-    .map((line) => "      " + line)
-    .join("\n");
-}
+import { CustomConsole } from "@jest/console";
 
 global.console = new CustomConsole(
   process.stdout,
   process.stderr,
-  simpleFormatter
+  (_, message) => message
 );
 
 import { setLogGlobalContext } from "./log";
 
 beforeEach(() => {
-  setLogGlobalContext(
-    `[${expect.getState().currentTestName}]`.padStart(30, " ")
-  );
+  setLogGlobalContext(expect.getState().currentTestName);
 });
 
 afterEach(() => {
