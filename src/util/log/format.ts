@@ -13,7 +13,7 @@ export function format(thing: any, depth: number = 2): any {
   if (isDocumentFragment(thing)) {
     return asIs(`DocumentFragment(${shortHTML(toHTML(thing))})`);
   } else if (isElement(thing)) {
-    return asIs(`Element(${shortHTML(thing.outerHTML)})`);
+    return asIs(`Element(${shortHTML(toHTML(thing))})`);
   } else if (isText(thing)) {
     const text = highlight(JSON.stringify(thing.textContent), LANG_JSON);
     return asIs(`Text(${text})`);

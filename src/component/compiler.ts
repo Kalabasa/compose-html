@@ -204,30 +204,28 @@ function processShorthands(node: Node, context: Context): boolean {
 function processElement(element: Element, context: Context): boolean {
   processElementAttrs(element);
 
-  switch (element.tagName) {
-    case "SCRIPT":
+  switch (element.tagName.toLowerCase()) {
+    case "script":
       const isRender = element.hasAttribute("render");
       const isStatic = element.hasAttribute("static");
       const isClient = element.hasAttribute("client");
 
+      // regular <script> (e.g. <script src="jquery.min.js">), as is
       if (+isRender + +isStatic + +isClient !== 1) {
-        throw new Error("<script> type unspecified");
+        return true;
       }
 
       if (isRender) {
         processRenderScript(element as HTMLScriptElement, context);
-        return true;
       } else if (isStatic) {
         context.staticScripts.push(element as HTMLScriptElement);
         element.remove();
-        return true;
       } else if (isClient) {
         context.clientScripts.push(element as HTMLScriptElement);
         element.remove();
-        return true;
       }
-      break;
-    case "STYLE":
+      return true;
+    case "style":
       context.styles.push(element as HTMLStyleElement);
       element.remove();
       return true;

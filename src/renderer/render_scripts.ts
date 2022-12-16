@@ -51,7 +51,7 @@ function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
   if (isElement(inOutNode)) {
     renderElementAttrs(inOutNode, runCode);
 
-    if (inOutNode.tagName === "SCRIPT" && inOutNode.hasAttribute("render")) {
+    if (inOutNode.tagName.toLowerCase() === "script" && inOutNode.hasAttribute("render")) {
       renderScriptElement(inOutNode as HTMLScriptElement, runCode);
       return;
     }

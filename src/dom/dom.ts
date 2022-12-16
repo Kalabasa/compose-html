@@ -1,12 +1,14 @@
 import { JSDOM } from "jsdom";
-import { isIterable } from "../util/is_iterable";
+import { isIterable } from "util/is_iterable";
+import { format } from "util/log/format";
+import { desensitizeHTML, undesensitizeHTML } from "./desensitize";
 
-const sharedAPI = new JSDOM("<dummy/>", { contentType: "text/html" }).window
-  .document;
+const sharedAPI = new JSDOM("", { contentType: "text/html" }).window.document;
 
 export function parse(source: string): DocumentFragment {
   const template = sharedAPI.createElement("template");
-  template.innerHTML = source;
+  template.innerHTML = desensitizeHTML(source);
+  console.log(format(template));
   return template.content;
 }
 
@@ -39,13 +41,11 @@ export function stableChildNodesOf(parent: Node): Iterable<Node> {
 }
 
 export function isTemplateElement(node: Node): node is HTMLTemplateElement {
-  return isElement(node) && node.tagName === "TEMPLATE";
+  return isElement(node) && node.tagName.toLowerCase() === "template";
 }
 
 export function isNode(node: any): node is Node {
-  return (
-    node?.nodeType != undefined && typeof (node as Node).nodeType === "number"
-  );
+  return typeof (node as Node)?.nodeType === "number";
 }
 
 export function isElement(node: any): node is Element {
@@ -82,7 +82,9 @@ export function toHTML(
       html += toHTML(item, false);
     }
   } else {
-    html = isElement(nodes) ? nodes.outerHTML : nodes.textContent ?? "";
+    html = isElement(nodes)
+      ? undesensitizeHTML(nodes.outerHTML)
+      : nodes.textContent ?? "";
   }
 
   return trim ? html.trim() : html;

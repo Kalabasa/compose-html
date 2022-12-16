@@ -13,7 +13,7 @@ export class Renderer {
   constructor(components: Map<string, Component> = new Map()) {
     this.components = new Map(
       [...components.entries()].map(([tagName, component]) => [
-        tagName.toUpperCase(),
+        tagName.toLowerCase(),
         component,
       ])
     );
@@ -52,7 +52,7 @@ export class Renderer {
     let result: Node[];
 
     let component: Component | undefined = undefined;
-    if (isElement(node) && (component = this.components.get(node.tagName))) {
+    if (isElement(node) && (component = this.components.get(node.tagName.toLowerCase()))) {
       const componentOutput = renderComponent(
         component,
         mapAttrs(node.attributes),

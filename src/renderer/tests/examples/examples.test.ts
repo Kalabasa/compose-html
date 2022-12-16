@@ -18,49 +18,78 @@ type ExampleWithExpectation = Example & {
 const logger = createLogger(path.basename(__filename));
 
 // dirName -> componentName -> Component
-const componentDir = new Map<string, Map<string, Component>>();
+const componentDir = new Map<string, Map<string, () => Component>>();
 
-const examples = glob
+const stubs = glob
   .sync(path.resolve(__dirname, "**/*.html"))
-  .map((filePath) => compileExample(filePath));
+  .map((filePath) => {
+    const dirName = path.relative(__dirname, path.dirname(filePath));
+    const fileName = path.basename(filePath, ".html");
 
-for (const example of examples) {
-  const dirName = getDirName(example.component.filePath);
+    const sourceText = readFileSync(filePath).toString();
 
-  let componentMap = componentDir.get(dirName);
-  if (!componentMap) componentDir.set(dirName, (componentMap = new Map()));
-  componentMap.set(example.component.name, example.component);
+    // quick parse only
+    const expectTag = sourceText.match(
+      /^(<expect\s*(?:\s+\w+(?:\s*=\s*\S+)?)*>)/gm
+    )?.[0];
 
-  logger.debug(`Loaded component in ${dirName}: <${example.component.name}>`);
+    // defer full compilation for when test is run
+    let cache: ReturnType<typeof compileExample> | undefined;
+    const compiled = () => {
+      if (!cache) {
+        cache = compileExample(filePath);
+        logger.debug(`Compiled component in ${dirName}: ${fileName}`);
+      }
+      return cache;
+    };
 
-  const isIndexHtml = example.component.filePath.endsWith("/index.html");
+    return {
+      fileName,
+      dirName,
+      filePath,
+      expectTag,
+      compiled,
+    };
+  });
 
-  if (isIndexHtml && !hasExpectation(example)) {
+for (const stub of stubs) {
+  let componentMap = componentDir.get(stub.dirName);
+  if (!componentMap) componentDir.set(stub.dirName, (componentMap = new Map()));
+  componentMap.set(stub.fileName, () => stub.compiled().component);
+
+  logger.debug(`Loaded stub in ${stub.dirName}: ${stub.fileName}`);
+
+  const isIndexHtml = stub.filePath.endsWith("/index.html");
+
+  if (isIndexHtml && !stub.expectTag) {
     logger.warn(
       "Example has no <expect>:",
-      path.relative(__dirname, example.component.filePath)
+      path.relative(__dirname, stub.filePath)
     );
   }
 }
 
 describe("Examples", () => {
-  for (const example of examples) {
-    const { filePath } = example.component;
-    const isIndexHtml = filePath.endsWith("/index.html");
+  for (const stub of stubs) {
+    const isIndexHtml = stub.filePath.endsWith("/index.html");
 
-    if (!hasExpectation(example)) continue;
-
-    const dirName = getDirName(filePath);
+    if (!stub.expectTag) continue;
 
     const testName = isIndexHtml
-      ? dirName
-      : `${dirName} ${path.basename(filePath, ".html")}`;
+      ? stub.dirName
+      : `${stub.dirName} ${stub.fileName}`;
 
-    const testFunc = example.skip ? test.skip : test;
-
+    const skip = !!stub.expectTag.match(/\bskip\b/);
+    const testFunc = skip ? test.skip : test;
     testFunc(testName, () => {
+      const example = stub.compiled();
+
+      if (!hasExpectation(example)) return;
+
       const { component, expected } = example;
-      const renderer = new Renderer(componentDir.get(dirName));
+      const renderer = new Renderer(
+        compiledComponentDir(componentDir.get(stub.dirName)!)
+      );
       const output = renderer.render(component);
       expect(toHTML(output).trim()).toBe(toHTML(expected!).trim());
     });
@@ -69,7 +98,10 @@ describe("Examples", () => {
 
 function compileExample(filePath: string): Example | ExampleWithExpectation {
   const sourceText = readFileSync(filePath);
-  const sourceNodes = [...childNodesOf(parse(sourceText.toString()))];
+
+  const fragment = parse(sourceText.toString());
+
+  const sourceNodes = Array.from(childNodesOf(fragment));
 
   let expected = undefined;
   let skip = undefined;
@@ -77,7 +109,7 @@ function compileExample(filePath: string): Example | ExampleWithExpectation {
   for (let i = sourceNodes.length - 1; i--; i >= 0) {
     const node = sourceNodes[i];
 
-    if (isElement(node) && node.tagName === "EXPECT") {
+    if (isElement(node) && node.tagName.toLowerCase() === "expect") {
       if (expected) throw new Error("Only one <expect> is expected.");
 
       expected = extractExpectedNodes(node);
@@ -131,10 +163,17 @@ function deindent(node: Node, indentRegExp: RegExp, mutate: boolean): Node {
   return deindented;
 }
 
-function getDirName(filePath: string) {
-  return path.relative(__dirname, path.dirname(filePath));
-}
-
 function hasExpectation(example: Example): example is ExampleWithExpectation {
   return (example as Partial<ExampleWithExpectation>).expected != undefined;
+}
+
+function compiledComponentDir(
+  componentDir: Map<string, () => Component>
+): Map<string, Component> {
+  return new Map(
+    Array.from(componentDir.entries()).map(([name, getComponent]) => [
+      name,
+      getComponent(),
+    ])
+  );
 }

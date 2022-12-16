@@ -4,7 +4,8 @@
     "acorn-loose": "^8.3.0",
     "jsdom": "^20.0.3",
     "loglevel": "^1.8.1",
-    "vm2": "^3.9.12"
+    "vm2": "^3.9.12",
+    "xml-zero-lexer": "^4.0.1"
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
