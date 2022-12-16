@@ -1,4 +1,4 @@
-import { compile } from "component/compiler";
+import { compile } from "compiler/compiler";
 import { toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 

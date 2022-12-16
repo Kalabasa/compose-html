@@ -1,8 +1,8 @@
 import {
   SCRIPT_DELIMITER_CLOSE,
   SCRIPT_DELIMITER_OPEN,
-} from "component/compiler";
-import { Component } from "component/component";
+} from "compiler/compiler";
+import { Component } from "compiler/component";
 import {
   childNodesOf,
   isElement,

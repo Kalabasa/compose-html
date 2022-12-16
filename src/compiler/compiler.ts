@@ -1,4 +1,4 @@
-import { Component } from "component/component";
+import { Component } from "compiler/component";
 import {
   childNodesOf,
   createElement,

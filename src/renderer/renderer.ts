@@ -1,4 +1,4 @@
-import { Component } from "component/component";
+import { Component } from "compiler/component";
 import { appendChild, childNodesOf, isElement, toHTML } from "dom/dom";
 import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";

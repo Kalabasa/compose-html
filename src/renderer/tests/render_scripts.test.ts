@@ -1,5 +1,5 @@
-import { compile, compileFile } from "component/compiler";
-import { Component } from "component/component";
+import { compile, compileFile } from "compiler/compiler";
+import { Component } from "compiler/component";
 import { parse, toHTML } from "dom/dom";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";

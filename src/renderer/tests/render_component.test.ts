@@ -1,4 +1,4 @@
-import { compile } from "component/compiler";
+import { compile } from "compiler/compiler";
 import { childNodesOf, parse, toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 import { renderComponent } from "renderer/render_component";

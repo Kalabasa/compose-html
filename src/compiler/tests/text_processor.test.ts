@@ -1,4 +1,4 @@
-import { TextProcessor } from "component/text_processor";
+import { TextProcessor } from "compiler/text_processor";
 import { createElement, createTextNode, parse } from "dom/dom";
 
 describe("TextProcessor", () => {

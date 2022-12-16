@@ -1,4 +1,4 @@
-import { Component } from "component/component";
+import { Component } from "compiler/component";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { rawHTML, RawHTML, rawHTMLSymbol } from "./raw_html";

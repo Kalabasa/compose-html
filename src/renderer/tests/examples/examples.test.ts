@@ -1,5 +1,5 @@
-import { compile } from "component/compiler";
-import { Component } from "component/component";
+import { compile } from "compiler/compiler";
+import { Component } from "compiler/component";
 import { childNodesOf, isElement, isText, parse, toHTML } from "dom/dom";
 import glob from "glob";
 import { readFileSync } from "node:fs";

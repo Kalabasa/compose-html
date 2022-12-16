@@ -1,4 +1,4 @@
-import { TextProcessor } from "component/text_processor";
+import { TextProcessor } from "compiler/text_processor";
 import { check } from "util/preconditions";
 import Lexx, { NodeTypes } from "xml-zero-lexer";
 import { createTextNode } from "./dom";

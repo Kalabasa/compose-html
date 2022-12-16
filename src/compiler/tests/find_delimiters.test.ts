@@ -1,4 +1,4 @@
-import { findDelimiters } from "component/find_delimiters";
+import { findDelimiters } from "compiler/find_delimiters";
 import { createTextNode, parse } from "dom/dom";
 
 describe("findDelimiters", () => {
