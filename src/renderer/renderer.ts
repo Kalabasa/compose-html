@@ -8,10 +8,15 @@ import { renderPage } from "./render_page";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
+type RendererOptions = {};
+
 export class Renderer {
   private readonly components: Map<string, Component>;
 
-  constructor(components: Map<string, Component> = new Map()) {
+  constructor(
+    components: Map<string, Component> = new Map(),
+    options: RendererOptions = {}
+  ) {
     this.components = new Map(
       [...components.entries()].map(([tagName, component]) => [
         tagName.toLowerCase(),

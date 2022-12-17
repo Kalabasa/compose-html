@@ -1,13 +1,15 @@
 {
   "dependencies": {
-    "@types/estree": "^1.0.0",
     "acorn-loose": "^8.3.0",
+    "js-beautify": "^1.14.7",
     "jsdom": "^20.0.3",
     "loglevel": "^1.8.1",
     "vm2": "^3.9.12",
     "xml-zero-lexer": "^4.0.1"
   },
   "devDependencies": {
+    "@types/estree": "^1.0.0",
+    "@types/js-beautify": "^1.13.3",
     "@types/glob": "^8.0.0",
     "@types/jest": "^29.2.3",
     "@types/jsdom": "^20.0.1",
