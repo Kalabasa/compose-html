@@ -27,8 +27,7 @@ export function renderScripts(
   renderer: Renderer
 ): void {
   const vm = createVM(component, attrs, {
-    __renderHTMLLiteral__: (index: number) =>
-      renderer.renderList(childNodesOf(component.htmlLiterals[index])),
+    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, renderer),
   });
 
   const scriptCode = component.staticScripts
@@ -47,11 +46,29 @@ export function renderScripts(
   }
 }
 
+function createHTMLLiteralRenderFunc(
+  component: Component,
+  renderer: Renderer
+): any {
+  return (index: number) => {
+    logger.debug("render HTML literal", index);
+    logger.group();
+    const result = renderer.renderList(
+      childNodesOf(component.htmlLiterals[index])
+    );
+    logger.groupEnd();
+    return result;
+  };
+}
+
 function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
   if (isElement(inOutNode)) {
     renderElementAttrs(inOutNode, runCode);
 
-    if (inOutNode.tagName.toLowerCase() === "script" && inOutNode.hasAttribute("render")) {
+    if (
+      inOutNode.tagName.toLowerCase() === "script" &&
+      inOutNode.hasAttribute("render")
+    ) {
       renderScriptElement(inOutNode as HTMLScriptElement, runCode);
       return;
     }
@@ -96,12 +113,21 @@ function renderScriptElement(
   runCode: (code: string) => unknown
 ) {
   const code = inOutElement.innerHTML;
+
   logger.debug("render script:", formatJSValue(code.replace(/\n/g, " ")));
   const results = Array.from(
     unwrapResults(runCode(wrapCode(code, inOutElement)) as any[])
   );
-  logger.debug("render result:", results);
+
+  logger.debug("render script result:", results);
   inOutElement.replaceWith(...results);
+
+  // because the node was replaced, standard recursion won't work
+  // so we renderNode() the results here
+  for (const item of results) {
+    if (!isNode(item)) continue;
+    renderNode(item, runCode);
+  }
 }
 
 function* unwrapResults(results: Iterable<any>): Generator<string | Node> {
