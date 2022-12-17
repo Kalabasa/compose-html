@@ -14,7 +14,7 @@ export class NodeListBuilder {
       }
 
       if (typeof item === "string") {
-        if (!item) return;
+        if (!item) continue;
 
         const lastNode = this.nodes[this.nodes.length - 1];
         if (isText(lastNode)) {

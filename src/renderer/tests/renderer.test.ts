@@ -3,7 +3,7 @@ import { toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 
 describe("renderer", () => {
-  it("on plain HTML", () => {
+  it("renders plain HTML", () => {
     const renderer = new Renderer();
     const output = renderer.render(
       compile(
@@ -18,7 +18,7 @@ describe("renderer", () => {
     );
   });
 
-  it("on unknown HTML", () => {
+  it("renders unknown HTML elements as is", () => {
     const renderer = new Renderer();
     const output = renderer.render(
       compile(
@@ -33,7 +33,7 @@ describe("renderer", () => {
     );
   });
 
-  it("on <template>", () => {
+  it("renders <template> correctly", () => {
     const renderer = new Renderer();
     const output = renderer.render(
       compile("test", "test.html", `<template>Quintessece</template>`)
@@ -42,7 +42,7 @@ describe("renderer", () => {
     expect(toHTML(output)).toBe(`<template>Quintessece</template>`);
   });
 
-  it("with dynamic attribute", () => {
+  it("renders dynamic attributes", () => {
     const renderer = new Renderer();
     const output = renderer.render(
       compile(
@@ -53,5 +53,20 @@ describe("renderer", () => {
     );
 
     expect(toHTML(output)).toBe(`<img class="va" src="vb" alt="Test">`);
+  });
+
+  it("renders a page component", () => {
+    const renderer = new Renderer();
+    const output = renderer.render(
+      compile(
+        "test",
+        "test.html",
+        `<html><head><title>foo</title></head><body>bar</body></html>`
+      )
+    );
+
+    expect(toHTML(output)).toBe(
+      `<html><head><title>foo</title></head><body>bar</body></html>`
+    );
   });
 });

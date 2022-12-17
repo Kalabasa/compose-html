@@ -1,10 +1,10 @@
-// todo: props type generic
-
-// Don't mutate the inner objects, or use nodes to add to a different parent
+// Don't mutate the inner objects, and don't reparent the nodes
 export interface Component {
   readonly name: string;
   readonly filePath: string;
   readonly source: DocumentFragment;
+  readonly isPage: boolean;
+  readonly metadata: ReadonlyArray<Node>;
   readonly content:  DocumentFragment;
   readonly staticScripts: ReadonlyArray<HTMLScriptElement>;
   readonly clientScripts: ReadonlyArray<HTMLScriptElement>;

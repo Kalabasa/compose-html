@@ -1,6 +1,5 @@
 import { JSDOM } from "jsdom";
 import { isIterable } from "util/is_iterable";
-import { format } from "util/log/format";
 import { desensitizeHTML, undesensitizeHTML } from "./desensitize";
 
 const sharedAPI = new JSDOM("", { contentType: "text/html" }).window.document;
@@ -8,10 +7,12 @@ const sharedAPI = new JSDOM("", { contentType: "text/html" }).window.document;
 export function parse(source: string): DocumentFragment {
   const template = sharedAPI.createElement("template");
   template.innerHTML = desensitizeHTML(source);
-  console.log(format(template));
   return template.content;
 }
 
+export const createDocumentFragment = exportAPI(
+  sharedAPI.createDocumentFragment
+);
 export const createElement = exportAPI(sharedAPI.createElement);
 export const createTextNode = exportAPI(sharedAPI.createTextNode);
 

@@ -2,44 +2,43 @@ import { compile } from "compiler/compiler";
 import { toHTML } from "dom/dom";
 
 describe("compiler", () => {
-  it("on plain HTML", () => {
+  it("returns the same source", () => {
     const component = compile(
       "test",
       "test.html",
-      `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
+      `<div class="foo"><span>bar</span></div><p>baz</p>`
     );
 
-    expect(component.name).toBe("test");
     expect(toHTML(component.source)).toBe(
-      `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
-    );
-    expect(toHTML(component.content)).toBe(
-      `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
+      `<div class="foo"><span>bar</span></div><p>baz</p>`
     );
   });
 
-  it("on <template>", () => {
+  it("returns a component with correct contents", () => {
     const component = compile(
       "test",
       "test.html",
-      `<template>Quintessece</template>`
+      `<div class="foo"><span>bar</span></div><p>baz</p>`
     );
 
-    expect(toHTML(component.source)).toBe(`<template>Quintessece</template>`);
-    expect(toHTML(component.content)).toBe(`<template>Quintessece</template>`);
+    expect(toHTML(component.content)).toBe(
+      `<div class="foo"><span>bar</span></div><p>baz</p>`
+    );
   });
 
-  it("with scripts", () => {
+  it("returns correct content with a template element", () => {
+    const component = compile("test", "test.html", `<template>foo</template>`);
+
+    expect(toHTML(component.content)).toBe(`<template>foo</template>`);
+  });
+
+  it("separates non-content scripts from content", () => {
     const component = compile(
       "test",
       "test.html",
       `<div>Hi <script render>name</script></div><script static>const name = "Foo";</script><script client>console.log(name);</script>`
     );
 
-    expect(component.name).toBe("test");
-    expect(toHTML(component.source)).toBe(
-      `<div>Hi <script render="">name</script></div><script static="">const name = "Foo";</script><script client="">console.log(name);</script>`
-    );
     expect(toHTML(component.content)).toBe(
       `<div>Hi <script render="expr">name</script></div>`
     );
@@ -51,7 +50,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on render shorthand", () => {
+  it("converts render shorthands into render scripts", () => {
     const component = compile(
       "test",
       "test.html",
@@ -63,7 +62,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on dynamic attribute shorthand", () => {
+  it("converts dynamic attribute shorthand into dynamic attribute format", () => {
     const component = compile(
       "test",
       "test.html",
@@ -75,7 +74,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on script with return", () => {
+  it("correctly detects render script with return", () => {
     const component = compile(
       "test",
       "test.html",
@@ -87,7 +86,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on script with yield", () => {
+  it("correctly detects render script with yield", () => {
     const component = compile(
       "test",
       "test.html",
@@ -99,7 +98,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on script with delegating yield", () => {
+  it("correctly detects render script with delegating yield", () => {
     const component = compile(
       "test",
       "test.html",
@@ -110,8 +109,8 @@ describe("compiler", () => {
       `Primes: <script render="gen">yield* computePrimes(5)</script>`
     );
   });
-  
-  it("on script with HTML literal", () => {
+
+  it("converts HTML literals inside a render script", () => {
     const component = compile(
       "test",
       "test.html",
@@ -125,7 +124,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on shorthand with HTML literal", () => {
+  it("converts HTML literals inside a render shorthand", () => {
     const component = compile(
       "test",
       "test.html",
@@ -139,23 +138,7 @@ describe("compiler", () => {
     );
   });
 
-  it("on shorthand with HTML literal with shorthand", () => {
-    const component = compile(
-      "test",
-      "test.html",
-      `12:00 {canEdit ? (<button>{strings.edit}</button>) : ""}`
-    );
-
-    expect(component.htmlLiterals).toHaveLength(1);
-    expect(toHTML(component.htmlLiterals[0])).toBe(
-      `<button><script render="expr">strings.edit</script></button>`
-    );
-    expect(toHTML(component.content)).toBe(
-      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
-    );
-  });
-
-  it("on shorthand with HTML literal with shorthand with HTML literal", () => {
+  it("converts nested shorthands and HTML literals", () => {
     const component = compile(
       "test",
       "test.html",
@@ -167,6 +150,39 @@ describe("compiler", () => {
       `<b>we <script render="expr">"go " +  (__renderHTMLLiteral__(1)) </script></b>`
     );
     expect(toHTML(component.htmlLiterals[1])).toBe(`<i>again!</i>`);
-    expect(toHTML(component.content)).toBe(`<script render="expr">"Here " +  (__renderHTMLLiteral__(0)) </script>`);
+    expect(toHTML(component.content)).toBe(
+      `<script render="expr">"Here " +  (__renderHTMLLiteral__(0)) </script>`
+    );
+  });
+
+  it("separates metadata from the content", () => {
+    const component = compile("test", "test.html", "<title>foo</title>bar");
+
+    expect(toHTML(component.metadata)).toBe("<title>foo</title>");
+    expect(toHTML(component.content)).toBe("bar");
+  });
+
+  it("detects a page component", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      "<html><head><title>foo</title></head><body>bar</body></html>"
+    );
+
+    expect(component.isPage).toBeTruthy();
+    expect(toHTML(component.metadata)).toBe("<title>foo</title>");
+    expect(toHTML(component.content)).toBe("bar");
+  });
+
+  it("detects a non-page component", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      "<head><title>foo</title></head>bar"
+    );
+
+    expect(component.isPage).toBeFalsy();
+    expect(toHTML(component.metadata)).toBe("<title>foo</title>");
+    expect(toHTML(component.content)).toBe("bar");
   });
 });

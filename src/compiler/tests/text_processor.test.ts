@@ -1,43 +1,41 @@
 import { TextProcessor } from "compiler/text_processor";
-import { createElement, createTextNode, parse } from "dom/dom";
+import { JSDOM } from "jsdom";
 
 describe("TextProcessor", () => {
-  it("reads a Text node", () => {
-    const node = createTextNode("hello, world");
-    const tp = new TextProcessor(node);
-    expect(tp.readUntil(5)).toEqual(["hello"]);
-    expect(tp.readUntil(7)).toEqual([", "]);
-    expect(tp.readUntil(999)).toEqual(["world"]);
+  const { document } = new JSDOM("", { contentType: "text/html" }).window;
+
+  let processor: TextProcessor;
+  let root: Element;
+
+  beforeEach(() => {
+    root = document.createElement("div");
+    root.innerHTML = "Text node 1<div>Non-text node</div>Text node 2";
+
+    processor = new TextProcessor(root);
   });
 
-  it("reads a fragment with text", () => {
-    const fragment = parse("hello, world");
-    const tp = new TextProcessor(fragment);
-    expect(tp.readUntil(5)).toEqual(["hello"]);
-    expect(tp.readUntil(7)).toEqual([", "]);
-    expect(tp.readUntil(999)).toEqual(["world"]);
+  it("processes text nodes correctly", () => {
+    const read = processor.readUntil(5);
+    expect(read).toEqual(["Text "]);
   });
 
-  it("reads content elements", () => {
-    const fragment = parse("hello, <b>world</b> again");
-    const tp = new TextProcessor(fragment);
-    expect(tp.readUntil(5)).toEqual(["hello"]);
-    expect(tp.readUntil(7)).toEqual([", "]);
-    expect(tp.readUntil(999)).toEqual([
-      parse("<b>world</b>").childNodes[0],
-      " again",
-    ]);
+  it("processes non-text nodes correctly", () => {
+    const read = processor.readUntil(16);
+    expect(read).toEqual(["Text node 1", root.querySelector("div")!, "Text "]);
   });
 
-  it("reads an Element node", () => {
-    const element = createElement("p");
-    element.innerHTML = "hello, <b>world</b> again";
-    const tp = new TextProcessor(element);
-    expect(tp.readUntil(5)).toEqual(["hello"]);
-    expect(tp.readUntil(7)).toEqual([", "]);
-    expect(tp.readUntil(999)).toEqual([
-      parse("<b>world</b>").childNodes[0],
-      " again",
-    ]);
+  it("remembers the last read index", () => {
+    const read1 = processor.readUntil(3);
+    const read2 = processor.readUntil(6);
+    const read3 = processor.readUntil(9);
+    expect(read1).toEqual(["Tex"]);
+    expect(read2).toEqual(["t n"]);
+    expect(read3).toEqual(["ode"]);
+  });
+
+  it("returns an empty array when all text has been processed", () => {
+    processor.readUntil(16);
+    const read = processor.readUntil(16);
+    expect(read).toEqual([]);
   });
 });

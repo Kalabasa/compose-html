@@ -1,6 +1,8 @@
 import { Component } from "compiler/component";
+import { DZ_PREFIX } from "dom/desensitize";
 import {
   childNodesOf,
+  createDocumentFragment,
   createElement,
   createTextNode,
   isDocumentFragment,
@@ -16,7 +18,7 @@ import { createLogger, formatHTMLValue } from "util/log";
 import { check } from "util/preconditions";
 import { findDelimiters } from "./find_delimiters";
 import { NodeListBuilder } from "./node_list_builder";
-import { detectScriptBehavior } from "./script_helpers";
+import { detectScriptBehavior } from "./detect_script_behavior";
 import { TextProcessor } from "./text_processor";
 
 export const SCRIPT_DELIMITER_OPEN = "{";
@@ -30,6 +32,8 @@ const DYNAMIC_ATTR_PREFIX = ":";
 const logger = createLogger(path.basename(__filename, ".ts"));
 
 type Context = {
+  metadata: Node[];
+  newRoot: Node;
   staticScripts: HTMLScriptElement[];
   clientScripts: HTMLScriptElement[];
   styles: HTMLStyleElement[];
@@ -61,8 +65,9 @@ export function compile(
   );
 
   const sourceFragment = parse(source);
-
   const content = sourceFragment.cloneNode(true) as DocumentFragment;
+  const isPage = !!content.querySelector(`${DZ_PREFIX}html,${DZ_PREFIX}body`);
+
   const context = processNode(content);
 
   context.htmlLiterals.forEach((htmlLiteral, index) => {
@@ -74,13 +79,28 @@ export function compile(
 
   trim(content);
 
-  const { staticScripts, clientScripts, styles, htmlLiterals } = context;
+  const {
+    metadata,
+    newRoot,
+    staticScripts,
+    clientScripts,
+    styles,
+    htmlLiterals,
+  } = context;
+
+  let newContent = content;
+  if (newRoot !== content) {
+    newContent = createDocumentFragment();
+    newContent.append(...childNodesOf(newRoot));
+  }
 
   const component: Component = {
     name,
     filePath,
     source: sourceFragment,
-    content,
+    isPage,
+    metadata,
+    content: newContent,
     staticScripts,
     clientScripts,
     styles,
@@ -90,16 +110,20 @@ export function compile(
   logger.debug("");
   logger.debug(
     "====== compile done ======",
+    "\nmetadata:",
+    component.metadata,
+    "\nisPage:",
+    component.isPage,
     "\ncontent:",
-    content,
+    component.content,
     "\nstatic scripts:",
-    staticScripts,
+    component.staticScripts,
     "\nclient scripts:",
-    clientScripts,
+    component.clientScripts,
     "\nstyles:",
-    styles,
+    component.styles,
     "\nhtml literals:",
-    htmlLiterals,
+    component.htmlLiterals,
     "\n"
   );
   return component;
@@ -108,6 +132,8 @@ export function compile(
 function processNode(
   node: Node,
   context: Context = {
+    metadata: [],
+    newRoot: node,
     staticScripts: [],
     clientScripts: [],
     styles: [],
@@ -123,9 +149,9 @@ function processNode(
     consumed = processElement(node, context);
   }
 
-  const removed = !node.parentNode && !isDocumentFragment(node);
-  if (removed) {
-    logger.debug("removed from content");
+  const detached = !node.parentNode && !isDocumentFragment(node);
+  if (detached) {
+    logger.debug("detached from content");
     logger.groupEnd();
   } else if (consumed) {
     logger.debug("consumed; ignore subnodes");
@@ -227,6 +253,22 @@ function processElement(element: Element, context: Context): boolean {
       return true;
     case "style":
       context.styles.push(element as HTMLStyleElement);
+      element.remove();
+      return true;
+    case `${DZ_PREFIX}html`:
+    case `${DZ_PREFIX}body`:
+      logger.debug("change to root here");
+      context.newRoot = element;
+      return false;
+    case `${DZ_PREFIX}head`:
+      context.metadata.push(...childNodesOf(element));
+      element.remove();
+      return true;
+    case "title":
+    case "base":
+    case "meta":
+    case "link":
+      context.metadata.push(element);
       element.remove();
       return true;
   }

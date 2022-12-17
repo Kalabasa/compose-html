@@ -4,6 +4,7 @@ import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
 import { mapAttrs } from "./attr_helpers";
 import { renderComponent } from "./render_component";
+import { renderPage } from "./render_page";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
@@ -29,7 +30,11 @@ export class Renderer {
       "\n"
     );
 
-    const result = this.renderList(renderComponent(component, [], [], this));
+    let result = this.renderList(renderComponent(component, [], [], this));
+
+    if (component.isPage) {
+      result = [renderPage(result, component)];
+    }
 
     logger.debug("");
     logger.debug(
@@ -52,7 +57,16 @@ export class Renderer {
     let result: Node[];
 
     let component: Component | undefined = undefined;
-    if (isElement(node) && (component = this.components.get(node.tagName.toLowerCase()))) {
+    if (
+      isElement(node) &&
+      (component = this.components.get(node.tagName.toLowerCase()))
+    ) {
+      if (component.isPage) {
+        throw new Error(
+          "Can't render a page component inside another component"
+        );
+      }
+
       const componentOutput = renderComponent(
         component,
         mapAttrs(node.attributes),

@@ -3,25 +3,26 @@ import { check } from "util/preconditions";
 import Lexx, { NodeTypes } from "xml-zero-lexer";
 import { createTextNode } from "./dom";
 
-const PREFIX = "dz-";
-const SENSITIVE_ELEMENTS = new Set(["html", "head", "body"]);
+// prefix to allow nesting that would be illegal in valid HTML
+export const DZ_PREFIX = "dz-";
 
-const DESENSITIZE_MAP = new Map(
-  Array.from(SENSITIVE_ELEMENTS.values()).map((item) => [item, PREFIX + item])
+const ELEMENTS = new Set(["html", "head", "body"]);
+
+const DESEN_MAP = new Map(
+  Array.from(ELEMENTS.values()).map((item) => [item, DZ_PREFIX + item])
 );
-
-const UNDESENSITIZE_MAP = new Map(
-  Array.from(DESENSITIZE_MAP.entries()).map(([from, to]) => [to, from])
+const UNDESEN_MAP = new Map(
+  Array.from(DESEN_MAP.entries()).map(([from, to]) => [to, from])
 );
 
 // replace parse-sensitive elements to be more resilient for general processing
 export function desensitizeHTML(html: string) {
-  return replaceTags(html, DESENSITIZE_MAP);
+  return replaceTags(html, DESEN_MAP);
 }
 
 // undo
 export function undesensitizeHTML(html: string) {
-  return replaceTags(html, UNDESENSITIZE_MAP);
+  return replaceTags(html, UNDESEN_MAP);
 }
 
 function replaceTags(html: string, map: Map<string, string>) {
