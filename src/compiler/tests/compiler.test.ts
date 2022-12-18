@@ -1,5 +1,6 @@
 import { compile } from "compiler/compiler";
 import { toHTML } from "dom/dom";
+import { checkNotNull } from "util/preconditions";
 
 describe("compiler", () => {
   it("returns the same source", () => {
@@ -169,7 +170,7 @@ describe("compiler", () => {
       "<html><head><title>foo</title></head><body>bar</body></html>"
     );
 
-    expect(component.isPage).toBeTruthy();
+    expect(component.page).toBeTruthy();
     expect(toHTML(component.metadata)).toBe("<title>foo</title>");
     expect(toHTML(component.content)).toBe("bar");
   });
@@ -181,8 +182,31 @@ describe("compiler", () => {
       "<head><title>foo</title></head>bar"
     );
 
-    expect(component.isPage).toBeFalsy();
+    expect(component.page).toBeFalsy();
     expect(toHTML(component.metadata)).toBe("<title>foo</title>");
     expect(toHTML(component.content)).toBe("bar");
+  });
+
+  it("extracts page skeleton", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `\
+<html>
+    <head></head>
+    
+    <body>foo</body>
+
+</html>`
+    );
+
+    expect(component.page).toBeTruthy();
+    expect(toHTML(checkNotNull(component.page).skeleton)).toBe(`\
+<html>
+    <head></head>
+    
+    <body></body>
+
+</html>`);
   });
 });

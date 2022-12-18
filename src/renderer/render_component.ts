@@ -21,7 +21,7 @@ export function renderComponent(
   logger.debug("component start:", `<${component.name} .. >`);
   logger.group();
 
-  const fragment = component.content.cloneNode(true) as DocumentFragment;
+  const fragment = component.content.cloneNode(true);
 
   renderScripts(fragment, component, attrs, renderer);
 

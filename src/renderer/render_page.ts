@@ -1,22 +1,26 @@
-import { DZ_PREFIX } from "dom/desensitize";
-import { createElement } from "dom/dom";
+import { Component } from "compiler/component";
+import { check, checkNotNull } from "util/preconditions";
+import { queryPageSkeleton } from "util/query_page_skeleton";
 
-type PageData = {
-  metadata: ReadonlyArray<Node>;
-  clientScripts: ReadonlyArray<HTMLScriptElement>;
-  styles: ReadonlyArray<HTMLStyleElement>;
-};
+type ComponentData = Pick<
+  Component,
+  "page" | "metadata" | "styles" | "clientScripts"
+>;
 
-export function renderPage(bodyContent: Node[], data: PageData): HTMLElement {
-  const { html, head, body } = createSkeleton();
-  head.append(...data.metadata, ...data.styles, ...data.clientScripts);
-  body.append(...bodyContent);
-  return html;
-}
+export function renderPage(
+  bodyContent: Node[],
+  componentData: ComponentData
+): Element {
+  const page = (check(componentData.page), checkNotNull(componentData.page));
 
-function createSkeleton() {
-  const html = createElement(`${DZ_PREFIX}html`);
-  const head = html.appendChild(createElement(`${DZ_PREFIX}head`));
-  const body = html.appendChild(createElement(`${DZ_PREFIX}body`));
-  return { html, head, body };
+  const { html, head, body } = queryPageSkeleton(page.skeleton.cloneNode(true));
+
+  checkNotNull(head).replaceChildren(
+    ...componentData.metadata,
+    ...componentData.styles,
+    ...componentData.clientScripts
+  );
+  checkNotNull(body).replaceChildren(...bodyContent);
+
+  return checkNotNull(html);
 }

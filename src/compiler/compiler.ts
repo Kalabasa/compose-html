@@ -20,6 +20,7 @@ import { findDelimiters } from "./find_delimiters";
 import { NodeListBuilder } from "./node_list_builder";
 import { detectScriptBehavior } from "./detect_script_behavior";
 import { TextProcessor } from "./text_processor";
+import { queryPageSkeleton } from "util/query_page_skeleton";
 
 export const SCRIPT_DELIMITER_OPEN = "{";
 export const SCRIPT_DELIMITER_CLOSE = "}";
@@ -33,7 +34,7 @@ const logger = createLogger(path.basename(__filename, ".ts"));
 
 type Context = {
   metadata: Node[];
-  newRoot: Node;
+  contentRoot: Node;
   staticScripts: HTMLScriptElement[];
   clientScripts: HTMLScriptElement[];
   styles: HTMLStyleElement[];
@@ -65,46 +66,35 @@ export function compile(
   );
 
   const sourceFragment = parse(source);
-  const content = sourceFragment.cloneNode(true) as DocumentFragment;
-  const isPage = !!content.querySelector(`${DZ_PREFIX}html,${DZ_PREFIX}body`);
+  let content = sourceFragment.cloneNode(true);
 
-  const context = processNode(content);
+  const processed = processNode(content);
 
-  context.htmlLiterals.forEach((htmlLiteral, index) => {
+  processed.htmlLiterals.forEach((htmlLiteral, index) => {
     logger.debug("post-process HTML literal", index);
     logger.group();
-    processNode(htmlLiteral, context);
+    processNode(htmlLiteral, processed);
     logger.groupEnd();
   });
 
-  trim(content);
-
-  const {
-    metadata,
-    newRoot,
-    staticScripts,
-    clientScripts,
-    styles,
-    htmlLiterals,
-  } = context;
-
-  let newContent = content;
-  if (newRoot !== content) {
-    newContent = createDocumentFragment();
-    newContent.append(...childNodesOf(newRoot));
+  if (processed.contentRoot === content) {
+    trim(content);
+  } else {
+    content = createDocumentFragment();
+    content.append(...childNodesOf(processed.contentRoot));
   }
 
   const component: Component = {
     name,
     filePath,
     source: sourceFragment,
-    isPage,
-    metadata,
-    content: newContent,
-    staticScripts,
-    clientScripts,
-    styles,
-    htmlLiterals,
+    page: extractPage(sourceFragment),
+    metadata: processed.metadata,
+    content,
+    staticScripts: processed.staticScripts,
+    clientScripts: processed.clientScripts,
+    styles: processed.styles,
+    htmlLiterals: processed.htmlLiterals,
   };
 
   logger.debug("");
@@ -112,8 +102,8 @@ export function compile(
     "====== compile done ======",
     "\nmetadata:",
     component.metadata,
-    "\nisPage:",
-    component.isPage,
+    "\npage:",
+    component.page?.skeleton,
     "\ncontent:",
     component.content,
     "\nstatic scripts:",
@@ -129,11 +119,32 @@ export function compile(
   return component;
 }
 
+function extractPage(sourceFragment: DocumentFragment) {
+  let page: Component["page"] = undefined;
+  let { html, head, body } = queryPageSkeleton(sourceFragment.cloneNode(true));
+  if (html || body) {
+    html = html ?? createElement(`${DZ_PREFIX}html`);
+    body = body ?? createElement(`${DZ_PREFIX}body`);
+    head = head ?? createElement(`${DZ_PREFIX}head`);
+
+    head.replaceChildren();
+    body.replaceChildren();
+
+    if (!html.contains(body)) html.appendChild(body);
+    if (!html.contains(head)) html.prepend(head);
+
+    page = {
+      skeleton: html as HTMLElement,
+    };
+  }
+  return page;
+}
+
 function processNode(
   node: Node,
   context: Context = {
     metadata: [],
-    newRoot: node,
+    contentRoot: node,
     staticScripts: [],
     clientScripts: [],
     styles: [],
@@ -258,7 +269,7 @@ function processElement(element: Element, context: Context): boolean {
     case `${DZ_PREFIX}html`:
     case `${DZ_PREFIX}body`:
       logger.debug("change to root here");
-      context.newRoot = element;
+      context.contentRoot = element;
       return false;
     case `${DZ_PREFIX}head`:
       context.metadata.push(...childNodesOf(element));

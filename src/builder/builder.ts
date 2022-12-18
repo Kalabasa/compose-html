@@ -39,13 +39,23 @@ export function build(options: BuildOptions = {}) {
   const renderer = new Renderer(componentMap);
 
   for (const component of componentMap.values()) {
-    if (!component.isPage) continue;
+    if (!component.page) continue;
 
     let pageHTML = toHTML(renderer.render(component));
 
     if (beautify) {
-      if (beautify.indent_size == undefined) {
+      if (!beautify.indent_with_tabs && beautify.indent_size == undefined) {
         // detect indent
+        const indentMatch = pageHTML.match(/\n(\s+)(?=\S)/);
+        if (indentMatch) {
+          const char = indentMatch[1][0];
+          if (char === "\t") {
+            beautify.indent_with_tabs = true;
+          } else {
+            beautify.indent_char = char;
+            beautify.indent_size = indentMatch[1].length;
+          }
+        }
       }
       pageHTML = beautifyHTML(pageHTML, beautify);
     }

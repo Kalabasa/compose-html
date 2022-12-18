@@ -37,7 +37,7 @@ export class Renderer {
 
     let result = this.renderList(renderComponent(component, [], [], this));
 
-    if (component.isPage) {
+    if (component.page) {
       result = [renderPage(result, component)];
     }
 
@@ -66,7 +66,7 @@ export class Renderer {
       isElement(node) &&
       (component = this.components.get(node.tagName.toLowerCase()))
     ) {
-      if (component.isPage) {
+      if (component.page) {
         throw new Error(
           "Can't render a page component inside another component"
         );

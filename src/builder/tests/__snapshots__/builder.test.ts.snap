@@ -1,13 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`build builds project1 1`] = `
+exports[`builder builds project1 1`] = `
 "./index.html:
 <html>
 <head>
-    <title>Project 1</title>
+  <title>Project 1</title>
 </head>
 <body>
-    <h1>Project 1</h1>
+  <h1>Project 1</h1>
+  <div>Hello, world!</div>
+  <button class="button">Log in</button>
 </body>
 </html>"
 `;

@@ -5,7 +5,7 @@ import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { relative, resolve } from "node:path";
 
-describe("build", () => {
+describe("builder", () => {
   it.each(["project1"])("builds %s", (projectDir) => {
     const inputDir = resolve(__dirname, "data", projectDir);
     const outputDir = mkdtempSync(resolve(tmpdir(), "jest-builder-"));

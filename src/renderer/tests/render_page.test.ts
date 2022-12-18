@@ -1,3 +1,4 @@
+import { DZ_PREFIX } from "dom/desensitize";
 import { toHTML } from "dom/dom";
 import { JSDOM } from "jsdom";
 import { renderPage } from "renderer/render_page";
@@ -5,9 +6,20 @@ import { renderPage } from "renderer/render_page";
 describe("renderPage", () => {
   const { document } = new JSDOM("", { contentType: "text/html" }).window;
 
+  let testSkeleton: HTMLElement;
+
+  beforeEach(() => {
+    testSkeleton = document.createElement(`${DZ_PREFIX}html`);
+    testSkeleton.appendChild(document.createElement(`${DZ_PREFIX}head`));
+    testSkeleton.appendChild(document.createElement(`${DZ_PREFIX}body`));
+  });
+
   it("should render a page with the given body content", () => {
     const bodyContent = [document.createTextNode("body content")];
     const data = {
+      page: {
+        skeleton: testSkeleton,
+      },
       metadata: [],
       clientScripts: [],
       styles: [],
@@ -20,6 +32,35 @@ describe("renderPage", () => {
     );
   });
 
+  it("should render a page with the given skeleton", () => {
+    const skeleton = document.createElement(`${DZ_PREFIX}html`);
+    skeleton.innerHTML = `
+  <${DZ_PREFIX}head></${DZ_PREFIX}head>
+  <${DZ_PREFIX}body></${DZ_PREFIX}body>
+`;
+
+    const bodyContent = [document.createTextNode("body content")];
+
+    const data = {
+      page: {
+        skeleton,
+      },
+      metadata: [],
+      clientScripts: [],
+      styles: [],
+    };
+
+    const result = renderPage(bodyContent, data);
+
+    expect(toHTML(result)).toEqual(
+      `\
+<html>
+  <head></head>
+  <body>body content</body>
+</html>`
+    );
+  });
+
   it("should render a page with the given metadata", () => {
     const meta = document.createElement("meta");
     meta.name = "origin";
@@ -28,6 +69,9 @@ describe("renderPage", () => {
     title.innerHTML = "foo";
 
     const data = {
+      page: {
+        skeleton: testSkeleton,
+      },
       metadata: [title, meta],
       clientScripts: [],
       styles: [],
@@ -49,6 +93,9 @@ describe("renderPage", () => {
     style.innerHTML = "body { margin: 0; }";
 
     const data = {
+      page: {
+        skeleton: testSkeleton,
+      },
       metadata: [title],
       clientScripts: [script],
       styles: [style],
