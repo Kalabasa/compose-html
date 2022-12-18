@@ -14,7 +14,6 @@ describe("builder", () => {
         inputDir,
         outputDir,
       });
-
       expect(filesToString(outputDir)).toMatchSnapshot();
     } finally {
       rm(outputDir, { recursive: true, force: true });

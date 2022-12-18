@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "acorn-loose": "^8.3.0",
+    "html-tags": "^3.2.0",
     "js-beautify": "^1.14.7",
     "jsdom": "^20.0.3",
     "loglevel": "^1.8.1",
@@ -9,9 +10,9 @@
   },
   "devDependencies": {
     "@types/estree": "^1.0.0",
-    "@types/js-beautify": "^1.13.3",
     "@types/glob": "^8.0.0",
     "@types/jest": "^29.2.3",
+    "@types/js-beautify": "^1.13.3",
     "@types/jsdom": "^20.0.1",
     "@types/node": "^18.11.10",
     "cli-highlight": "^2.1.11",

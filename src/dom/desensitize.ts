@@ -1,6 +1,6 @@
 import { TextProcessor } from "compiler/text_processor";
-import { check } from "util/preconditions";
 import Lexx, { NodeTypes } from "xml-zero-lexer";
+import { castStrArr } from "../util/cast_string_array";
 import { createTextNode } from "./dom";
 
 // prefix to allow nesting that would be illegal in valid HTML
@@ -42,18 +42,12 @@ function replaceTags(html: string, map: Map<string, string>) {
       continue;
     }
 
-    result.push(...chkStrArr(textProcessor.readUntil(token[1])));
-    const tagName = chkStrArr(textProcessor.readUntil(token[2])).join("");
+    result.push(...castStrArr(textProcessor.readUntil(token[1])));
+    const tagName = castStrArr(textProcessor.readUntil(token[2])).join("");
     result.push(map.get(tagName) ?? tagName);
   }
 
-  result.push(...chkStrArr(textProcessor.readUntil(Infinity)));
+  result.push(...castStrArr(textProcessor.readUntil(Infinity)));
 
   return result.join("");
-}
-
-// checkStringArray
-function chkStrArr<T extends any[]>(array: T): T & string[] {
-  check(array.every((item) => typeof item === "string"));
-  return array;
 }

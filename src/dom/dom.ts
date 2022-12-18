@@ -1,12 +1,13 @@
 import { JSDOM } from "jsdom";
 import { isIterable } from "util/is_iterable";
 import { desensitizeHTML, undesensitizeHTML } from "./desensitize";
+import { expandSelfClosing } from "./expand_self_closing";
 
 const sharedAPI = new JSDOM("", { contentType: "text/html" }).window.document;
 
 export function parse(source: string): DocumentFragment {
   const template = sharedAPI.createElement("template");
-  template.innerHTML = desensitizeHTML(source);
+  template.innerHTML = expandSelfClosing(desensitizeHTML(source));
   return template.content;
 }
 

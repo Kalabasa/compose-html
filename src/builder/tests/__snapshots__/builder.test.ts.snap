@@ -1,15 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`builder builds project1 1`] = `
-"./index.html:
+"./about.html:
+<html>
+<head>
+  <title>About Project 1</title>
+</head>
+<body>
+  <div class="header">
+    <h1>About Project 1</h1>
+
+  </div>
+  <div>This is a test project.</div>
+</body>
+</html>
+
+./index.html:
 <html>
 <head>
   <title>Project 1</title>
 </head>
 <body>
-  <h1>Project 1</h1>
+  <div class="header">
+    <h1>Project 1</h1>
+
+    <button class="button">Sign in</button>
+    <button class="button">Log up</button>
+
+  </div>
   <div>Hello, world!</div>
-  <button class="button">Log in</button>
+  <nav>
+    <a href="about.html">About</a>
+  </nav>
 </body>
 </html>"
 `;
