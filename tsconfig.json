@@ -4,11 +4,14 @@
     "lib": ["dom"],
     "module": "CommonJS",
     "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "outDir": "dist/cjs",
+    "declaration": true,
+    "declarationDir": "dist/types",
     "baseUrl": "./src",
     "paths": {
       "*": ["*", "../node_modules/*"]
     },
-    "resolveJsonModule": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
     "noImplicitOverride": true
