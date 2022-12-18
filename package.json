@@ -1,6 +1,9 @@
 {
+  "name": "compose-html",
+  "bin": "bin/main.js",
   "dependencies": {
     "acorn-loose": "^8.3.0",
+    "commander": "^9.4.1",
     "html-tags": "^3.2.0",
     "js-beautify": "^1.14.7",
     "jsdom": "^20.0.3",
@@ -25,6 +28,7 @@
     "typescript": "^4.9.3"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest"
   }
 }
