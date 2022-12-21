@@ -15,7 +15,6 @@ import { isIterable } from "util/is_iterable";
 import { createLogger, formatJSValue } from "util/log";
 import { check } from "util/preconditions";
 import { isRawHTML } from "./raw_html";
-import { Renderer } from "./renderer";
 import { createVM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
@@ -24,10 +23,10 @@ export function renderScripts(
   inOutFragment: DocumentFragment,
   component: Component,
   attrs: Record<string, any>,
-  renderer: Renderer
+  render: (nodes: Iterable<Node>) => any
 ): void {
   const vm = createVM(component, attrs, {
-    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, renderer),
+    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, render),
   });
 
   const scriptCode = component.staticScripts
@@ -48,14 +47,12 @@ export function renderScripts(
 
 function createHTMLLiteralRenderFunc(
   component: Component,
-  renderer: Renderer
+  renderList: (nodes: Iterable<Node>) => any
 ): any {
   return (index: number) => {
     logger.debug("render HTML literal", index);
     logger.group();
-    const result = renderer.renderList(
-      childNodesOf(component.htmlLiterals[index])
-    );
+    const result = renderList(childNodesOf(component.htmlLiterals[index]));
     logger.groupEnd();
     return result;
   };

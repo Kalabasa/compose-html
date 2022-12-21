@@ -2,10 +2,23 @@ import util from "node:util";
 import { highlight } from "cli-highlight";
 import { isDocumentFragment, isElement, isText, toHTML } from "dom/dom";
 import { isRawHTML } from "renderer/raw_html";
+import { Logger } from "loglevel";
 
 const LANG_JSON = { language: "json" };
 const LANG_HTML = { language: "html" };
 const LANG_JSX = { language: "jsx" };
+
+export function installFormatter(logger: Logger) {
+  const originalFactory = logger.methodFactory;
+
+  logger.methodFactory = function (methodName, logLevel, loggerName) {
+    const originalMethod = originalFactory(methodName, logLevel, loggerName);
+
+    return (...msg: any[]) => {
+      return originalMethod(...msg.map((item) => format(item)));
+    };
+  };
+}
 
 export function format(thing: any, depth: number = 2): any {
   if (!thing) return thing;

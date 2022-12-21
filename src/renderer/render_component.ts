@@ -3,7 +3,6 @@ import { childNodesOf, isElement, isTemplateElement, toHTML } from "dom/dom";
 import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
-import { Renderer } from "./renderer";
 import { renderScripts } from "./render_scripts";
 
 const DEFAULT_SLOT_NAME = "default";
@@ -16,14 +15,14 @@ export function renderComponent(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  renderer: Renderer
+  render: (nodes: Iterable<Node>) => any
 ): Iterable<Node> {
   logger.debug("component start:", `<${component.name} .. >`);
   logger.group();
 
   const fragment = component.content.cloneNode(true);
 
-  renderScripts(fragment, component, attrs, renderer);
+  renderScripts(fragment, component, attrs, render);
 
   // Key: slot name
   // Value is `SLOT_USED` if slot has been used
@@ -39,8 +38,7 @@ export function renderComponent(
   logger.debug(
     "component done:",
     `<${component.name} .. />`,
-    "→\n\b",
-    formatHTMLValue(toHTML(fragment))
+    "→\n" + formatHTMLValue(toHTML(fragment))
   );
   return childNodesOf(fragment);
 }

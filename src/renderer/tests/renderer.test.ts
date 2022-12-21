@@ -69,4 +69,24 @@ describe("renderer", () => {
       `<html><head><title>foo</title></head><body>bar</body></html>`
     );
   });
+
+  it("renders combined metadata in a page", () => {
+    const myMeta = compile(
+      "my-meta",
+      "my-meta.html",
+      `<head><meta name="origin" content="local"></head>`
+    );
+    const renderer = new Renderer(new Map([["my-meta", myMeta]]));
+    const output = renderer.render(
+      compile(
+        "test",
+        "test.html",
+        `<html><head><title>foo</title></head><body><my-meta/>bar</body></html>`
+      )
+    );
+
+    expect(toHTML(output)).toBe(
+      `<html><head><title>foo</title><meta name="origin" content="local"></head><body>bar</body></html>`
+    );
+  });
 });

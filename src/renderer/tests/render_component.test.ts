@@ -4,13 +4,18 @@ import { Renderer } from "renderer/renderer";
 import { renderComponent } from "renderer/render_component";
 
 describe("render_component", () => {
+  const renderList = (nodes: Iterable<Node>) => {
+    const renderer = new Renderer();
+    return renderer.renderList(nodes);
+  };
+
   it("simple", () => {
     const component = compile(
       "welcome-banner",
       "test.html",
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
     );
-    const output = renderComponent(component, [], [], new Renderer());
+    const output = renderComponent(component, [], [], renderList);
 
     expect(toHTML(output)).toBe(
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
@@ -31,7 +36,7 @@ describe("render_component", () => {
           parse(`<template slot="header">Hello</template>What's up?`)
         ),
       ],
-      new Renderer()
+      renderList
     );
 
     expect(toHTML(output)).toBe(
@@ -45,15 +50,8 @@ describe("render_component", () => {
       "test.html",
       `<p><slot name="content">Uh oh</slot></p>`
     );
-    const output = renderComponent(
-      component,
-      [],
-      [],
-      new Renderer()
-    );
+    const output = renderComponent(component, [], [], renderList);
 
-    expect(toHTML(output)).toBe(
-      `<p>Uh oh</p>`
-    );
+    expect(toHTML(output)).toBe(`<p>Uh oh</p>`);
   });
 });

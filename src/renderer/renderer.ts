@@ -10,6 +10,12 @@ const logger = createLogger(path.basename(__filename, ".ts"));
 
 type RendererOptions = {};
 
+type Context = {
+  metadata: Set<Node>;
+  clientScripts: Set<HTMLScriptElement>;
+  styles: Set<HTMLStyleElement>;
+};
+
 export class Renderer {
   private readonly components: Map<string, Component>;
 
@@ -30,15 +36,34 @@ export class Renderer {
       "====== render start ======",
       "\nroot component:",
       component.name,
-      "\n\n\b",
-      formatHTMLValue(toHTML(component.content)),
+      "\n\n" + formatHTMLValue(toHTML(component.content)),
       "\n"
     );
 
-    let result = this.renderList(renderComponent(component, [], [], this));
+    let context: Context | undefined;
 
     if (component.page) {
-      result = [renderPage(result, component)];
+      context = {
+        metadata: new Set(component.metadata),
+        clientScripts: new Set(component.clientScripts),
+        styles: new Set(component.styles),
+      };
+    }
+
+    let result = this.renderList(
+      renderComponent(component, [], [], this.renderList),
+      context
+    );
+
+    if (component.page && context) {
+      result = [
+        renderPage(result, {
+          page: component.page,
+          metadata: Array.from(context.metadata),
+          clientScripts: Array.from(context.clientScripts),
+          styles: Array.from(context.styles),
+        }),
+      ];
     }
 
     logger.debug("");
@@ -46,18 +71,17 @@ export class Renderer {
       "====== render done ======",
       "\nroot component:",
       component.name,
-      "\n\n\b",
-      formatHTMLValue(toHTML(result)),
+      "\n\n" + formatHTMLValue(toHTML(result)),
       "\n"
     );
     return result;
   }
 
-  renderNode(node: Node): Node[] {
+  renderNode(node: Node, context?: Context): Node[] {
     logger.debug(node);
     logger.group();
 
-    const children = this.renderList(childNodesOf(node));
+    const children = this.renderList(childNodesOf(node), context);
 
     let result: Node[];
 
@@ -76,9 +100,22 @@ export class Renderer {
         component,
         mapAttrs(node.attributes),
         children,
-        this
+        this.renderList
       );
-      result = this.renderList(componentOutput);
+
+      if (context) {
+        for (const metadata of component.metadata) {
+          context.metadata.add(metadata);
+        }
+        for (const script of component.clientScripts) {
+          context.clientScripts.add(script);
+        }
+        for (const style of component.styles) {
+          context.styles.add(style);
+        }
+      }
+
+      result = this.renderList(componentOutput, context);
     } else {
       const clone = node.cloneNode(false);
       for (const child of children) {
@@ -91,13 +128,16 @@ export class Renderer {
     return result;
   }
 
-  renderList(nodes: Iterable<Node>): Node[] {
-    return [...this.generateRenderedList(nodes)];
-  }
+  renderList = (nodes: Iterable<Node>, context?: Context): Node[] => {
+    return [...this.generateRenderedList(nodes, context)];
+  };
 
-  private *generateRenderedList(nodes: Iterable<Node>): Generator<Node> {
+  private *generateRenderedList(
+    nodes: Iterable<Node>,
+    context?: Context
+  ): Generator<Node> {
     for (const node of nodes) {
-      for (const rendered of this.renderNode(node)) {
+      for (const rendered of this.renderNode(node, context)) {
         yield rendered;
       }
     }

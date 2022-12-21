@@ -209,4 +209,25 @@ describe("compiler", () => {
 
 </html>`);
   });
+
+  it("removes illegal nodes from the page skeleton", () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `\
+<html>
+    <head></head>
+    <body>foo</body>
+    bar
+    <div>baz</div>
+</html>`
+    );
+
+    expect(component.page).toBeTruthy();
+    expect(toHTML(checkNotNull(component.page).skeleton)).toBe(`\
+<html>
+    <head></head>
+    <body></body>
+</html>`);
+  });
 });

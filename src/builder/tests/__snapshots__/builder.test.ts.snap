@@ -19,6 +19,11 @@ exports[`builder builds project1 1`] = `
 <html>
 <head>
   <title>Project 1</title>
+  <style>
+    .button {
+      border-radius: 11px;
+    }
+  </style>
 </head>
 <body>
   <div class="header">

@@ -3,7 +3,7 @@ export interface Component {
   readonly name: string;
   readonly filePath: string;
   readonly source: DocumentFragment;
-  readonly page: PageData | undefined;
+  readonly page: Page | undefined;
   readonly metadata: ReadonlyArray<Node>;
   readonly content: DocumentFragment;
   readonly staticScripts: ReadonlyArray<HTMLScriptElement>;
@@ -12,6 +12,6 @@ export interface Component {
   readonly htmlLiterals: ReadonlyArray<DocumentFragment>;
 }
 
-type PageData = {
+export type Page = {
   skeleton: Element;
 };

@@ -60,8 +60,7 @@ export function compile(
     name,
     "\nfile path:",
     filePath,
-    "\n\n\b",
-    formatHTMLValue(source.trim()),
+    "\n\n" + formatHTMLValue(source.trim()),
     "\n"
   );
 
@@ -129,6 +128,12 @@ function extractPage(sourceFragment: DocumentFragment) {
 
     head.replaceChildren();
     body.replaceChildren();
+
+    for (const child of stableChildNodesOf(html)) {
+      if (child == head || child == body) continue;
+      if (isText(child) && !child.textContent?.trim()) continue;
+      html.removeChild(child);
+    }
 
     if (!html.contains(body)) html.appendChild(body);
     if (!html.contains(head)) html.prepend(head);

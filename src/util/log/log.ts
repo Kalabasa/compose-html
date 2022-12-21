@@ -1,5 +1,6 @@
 import loglevel, { Logger } from "loglevel";
 import { installContextWrapper, setLogContext } from "./context";
+import { installFormatter } from "./format";
 import {
   installLogGrouper,
   decreaseLogIndent,
@@ -9,7 +10,8 @@ import {
 import { installMethodNameCollector } from "./method_names";
 
 const { methodNames } = installMethodNameCollector(loglevel);
-installContextWrapper(loglevel);
+installFormatter(loglevel);
+if (require.main !== module) installContextWrapper(loglevel);
 installLogGrouper(loglevel);
 
 loglevel.setLevel(

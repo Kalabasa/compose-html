@@ -1,24 +1,26 @@
-import { Component } from "compiler/component";
+import { Page } from "compiler/component";
 import { check, checkNotNull } from "util/preconditions";
 import { queryPageSkeleton } from "util/query_page_skeleton";
 
-type ComponentData = Pick<
-  Component,
-  "page" | "metadata" | "styles" | "clientScripts"
->;
+type PageData = {
+  readonly page: Page | undefined;
+  readonly metadata: ReadonlyArray<Node>;
+  readonly clientScripts: ReadonlyArray<HTMLScriptElement>;
+  readonly styles: ReadonlyArray<HTMLStyleElement>;
+};
 
 export function renderPage(
   bodyContent: Node[],
-  componentData: ComponentData
+  metadata: PageData
 ): Element {
-  const page = (check(componentData.page), checkNotNull(componentData.page));
+  const page = (check(metadata.page), checkNotNull(metadata.page));
 
   const { html, head, body } = queryPageSkeleton(page.skeleton.cloneNode(true));
 
   checkNotNull(head).replaceChildren(
-    ...componentData.metadata,
-    ...componentData.styles,
-    ...componentData.clientScripts
+    ...metadata.metadata,
+    ...metadata.styles,
+    ...metadata.clientScripts
   );
   checkNotNull(body).replaceChildren(...bodyContent);
 
