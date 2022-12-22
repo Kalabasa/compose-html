@@ -15,7 +15,7 @@ if (require.main !== module) installContextWrapper(loglevel);
 installLogGrouper(loglevel);
 
 loglevel.setLevel(
-  (loglevel.levels as any)[process.env.LOGLEVEL ?? "DEBUG"] ??
+  (loglevel.levels as any)[process.env.LOGLEVEL ?? "INFO"] ??
     loglevel.levels.DEBUG
 );
 

@@ -2,7 +2,7 @@ import { compileFile } from "compiler/compiler";
 import { Component } from "compiler/component";
 import { toHTML } from "dom/dom";
 import glob from "glob";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, lstatSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
 import { html as beautifyHTML, HTMLBeautifyOptions } from "js-beautify";
@@ -32,19 +32,45 @@ export function build(options: BuildOptions = {}) {
     rootDir: rootDirOption,
     beautify,
   } = Object.assign({}, DEFAULT_OPTIONS, options);
+  const rootDir = rootDirOption ?? inputDir;
 
+  logger.info(
+    "✍  compose-html",
+    "\n\nWorking directories",
+    "\n   input:",
+    formatPath(inputDir),
+    "\n  output:",
+    formatPath(outputDir),
+    "\n    root:",
+    formatPath(rootDir),
+    "\n"
+  );
+
+  const nodir = { nodir: true };
+  const htmlFiles = glob.sync(path.resolve(inputDir, "**/*.html"), nodir);
+  const nonHTMLFiles = glob
+    .sync(path.resolve(rootDir, "**"), nodir)
+    .filter((f) => !htmlFiles.includes(f));
+  logger.debug(htmlFiles.length, "html files detected.");
+  logger.debug(nonHTMLFiles.length, "non-html files detected.");
+
+  // compile HTML files as components
   const componentMap = new Map<string, Component>();
-
-  const htmlFiles = glob.sync(path.resolve(inputDir, "**/*.html"));
   for (const filePath of htmlFiles) {
     const component = compileFile(filePath);
     componentMap.set(component.name, component);
   }
-
+  const renderer = new Renderer(componentMap);
   logger.debug("Loaded components:", componentMap.keys());
 
-  const rootDir = rootDirOption ?? inputDir;
-  const renderer = new Renderer(componentMap);
+  // copy non-HTML files
+  for (const file of nonHTMLFiles) {
+    const relPath = path.relative(rootDir, file);
+    const outFilePath = path.resolve(outputDir, relPath);
+    mkdirSync(path.dirname(outFilePath), { recursive: true });
+    copyFileSync(file, outFilePath);
+    logger.info("Copied", formatPath(file), "→", formatPath(outFilePath));
+  }
 
   // render pages
   for (const component of componentMap.values()) {
@@ -58,10 +84,24 @@ export function build(options: BuildOptions = {}) {
     }
 
     const pagePath = path.relative(rootDir, component.filePath);
-    const outFilePath = path.resolve(outputDir, pagePath);
+    const outFilePath =
+      component.name === "index"
+        ? path.resolve(outputDir, pagePath)
+        : path.resolve(
+            outputDir,
+            path.dirname(pagePath),
+            component.name,
+            "index.html"
+          );
 
     mkdirSync(path.dirname(outFilePath), { recursive: true });
     writeFileSync(outFilePath, pageHTML);
+    logger.info(
+      "Rendered",
+      formatPath(component.filePath),
+      "→",
+      formatPath(outFilePath)
+    );
   }
 }
 
@@ -81,5 +121,15 @@ function initBeautifyDefaults(
         beautify.indent_size = indentMatch[1].length;
       }
     }
+  }
+}
+
+function formatPath(p: string): string {
+  const cwd = process.cwd();
+  const abs = path.resolve(p);
+  if (abs.startsWith(cwd)) {
+    return path.relative(cwd, p);
+  } else {
+    return abs;
   }
 }
