@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`builder builds project1 1`] = `
-"./about.html:
+"./about/index.html:
 <html>
 <head>
   <title>About Project 1</title>

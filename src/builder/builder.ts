@@ -49,10 +49,10 @@ export function build(options: BuildOptions = {}) {
   const nodir = { nodir: true };
   const htmlFiles = glob.sync(path.resolve(inputDir, "**/*.html"), nodir);
   const nonHTMLFiles = glob
-    .sync(path.resolve(rootDir, "**"), nodir)
+    .sync(path.resolve(rootDir, "**/*"), nodir)
     .filter((f) => !htmlFiles.includes(f));
-  logger.debug(htmlFiles.length, "html files detected.");
-  logger.debug(nonHTMLFiles.length, "non-html files detected.");
+  logger.info(htmlFiles.length, "html files");
+  logger.info(nonHTMLFiles.length, "non-html files");
 
   // compile HTML files as components
   const componentMap = new Map<string, Component>();
@@ -62,7 +62,7 @@ export function build(options: BuildOptions = {}) {
   }
   const renderer = new Renderer(componentMap);
   logger.debug("Loaded components:", componentMap.keys());
-
+ 
   // copy non-HTML files
   for (const file of nonHTMLFiles) {
     const relPath = path.relative(rootDir, file);

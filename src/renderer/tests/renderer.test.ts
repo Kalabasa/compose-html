@@ -89,4 +89,37 @@ describe("renderer", () => {
       `<html><head><title>foo</title><meta name="origin" content="local"></head><body>bar</body></html>`
     );
   });
+
+  it("orders script dependencies correctly", () => {
+    const componentA = compile(
+      "a",
+      "a.html",
+      "<b/><c/><script client>a</script>"
+    );
+    const componentB = compile(
+      "b",
+      "b.html",
+      "<c/><d/><script client>b</script>"
+    );
+    const componentC = compile("c", "c.html", "<d/><script client>c</script>");
+    const componentD = compile("d", "d.html", "<script client>d</script>");
+    const renderer = new Renderer(
+      new Map([
+        ["a", componentA],
+        ["b", componentB],
+        ["c", componentC],
+        ["d", componentD],
+      ])
+    );
+    const output = renderer.render(
+      compile("test", "test.html", `<html><a/></html>`)
+    );
+
+    expect(output).toHaveLength(1);
+    expect(
+      Array.from((output[0] as Element).querySelectorAll("script")).map(
+        (script) => script.innerHTML
+      )
+    ).toEqual(["d", "c", "b", "a"]);
+  });
 });

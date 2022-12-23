@@ -60,7 +60,8 @@ export class Renderer {
         renderPage(result, {
           page: component.page,
           metadata: Array.from(context.metadata),
-          clientScripts: Array.from(context.clientScripts),
+          // reverse array to satisfy dependency loading order
+          clientScripts: Array.from(context.clientScripts).reverse(),
           styles: Array.from(context.styles),
         }),
       ];
@@ -108,6 +109,8 @@ export class Renderer {
           context.metadata.add(metadata);
         }
         for (const script of component.clientScripts) {
+          // re-order to keep correct load order
+          context.clientScripts.delete(script);
           context.clientScripts.add(script);
         }
         for (const style of component.styles) {
