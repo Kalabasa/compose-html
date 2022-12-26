@@ -6,6 +6,7 @@ import { Component } from "compiler/component";
 import {
   childNodesOf,
   isElement,
+  isInlineJavaScriptElement,
   isNode,
   parse,
   stableChildNodesOf,
@@ -62,10 +63,7 @@ function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
   if (isElement(inOutNode)) {
     renderElementAttrs(inOutNode, runCode);
 
-    if (
-      inOutNode.tagName.toLowerCase() === "script" &&
-      inOutNode.hasAttribute("render")
-    ) {
+    if (isInlineJavaScriptElement(inOutNode) && inOutNode.hasAttribute("render")) {
       renderScriptElement(inOutNode as HTMLScriptElement, runCode);
       return;
     }

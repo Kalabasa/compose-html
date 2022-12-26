@@ -7,6 +7,7 @@ import {
   createTextNode,
   isDocumentFragment,
   isElement,
+  isInlineJavaScriptElement,
   isText,
   parse,
   stableChildNodesOf,
@@ -248,6 +249,12 @@ function processElement(element: Element, context: Context): boolean {
 
   switch (element.tagName.toLowerCase()) {
     case "script":
+      if (!isInlineJavaScriptElement(element)) {
+        context.metadata.push(element);
+        element.remove();
+        return true;
+      }
+
       const isRender = element.hasAttribute("render");
       const isStatic = element.hasAttribute("static");
       const isClient = element.hasAttribute("client");

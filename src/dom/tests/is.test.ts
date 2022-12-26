@@ -2,9 +2,11 @@ import { JSDOM } from "jsdom";
 import {
   isDocumentFragment,
   isElement,
+  isInlineJavaScriptElement,
   isNode,
   isTemplateElement,
   isText,
+  parse,
 } from "dom/dom";
 
 describe("is", () => {
@@ -15,6 +17,7 @@ describe("is", () => {
     isNode,
     isElement,
     isTemplateElement,
+    isInlineJavaScriptElement,
     isDocumentFragment,
   ];
 
@@ -34,6 +37,22 @@ describe("is", () => {
     {
       value: document.createElement("template"),
       tests: [isNode, isElement, isTemplateElement],
+    },
+    {
+      value: parse("<script>console.log(0)</script>").firstElementChild,
+      tests: [isNode, isElement, isInlineJavaScriptElement],
+    },
+    {
+      value: parse(`<script src="foo.js"></script>`).firstElementChild,
+      tests: [isNode, isElement],
+    },
+    {
+      value: parse(`<script type="text/javascript">console.log(0)</script>`).firstElementChild,
+      tests: [isNode, isElement, isInlineJavaScriptElement],
+    },
+    {
+      value: parse(`<script type="text/plain">foo</script>`).firstElementChild,
+      tests: [isNode, isElement],
     },
     {
       value: null,
@@ -59,7 +78,9 @@ describe("is", () => {
 
   it.each(
     cases.map((item) => ({
-      desc: `${item.value} to be (${item.tests.map((f) => f.name)})`,
+      desc: `${item.value} is (${item.tests.map((f) =>
+        f.name.startsWith("is") ? f.name.substring(2) : f.name
+      )})`,
       ...item,
     }))
   )("$desc", ({ value, tests }) => {

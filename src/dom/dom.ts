@@ -46,6 +46,18 @@ export function isTemplateElement(node: Node): node is HTMLTemplateElement {
   return isElement(node) && node.tagName.toLowerCase() === "template";
 }
 
+export function isInlineJavaScriptElement(
+  node: Node
+): node is HTMLScriptElement {
+  if (!isElement(node)) return false;
+  const src = node.getAttribute("src");
+  const type = node.getAttribute("type");
+  return (
+    node.tagName.toLowerCase() == "script" &&
+    ((!type && !src) || type === "text/javascript")
+  );
+}
+
 export function isNode(node: any): node is Node {
   return typeof (node as Node)?.nodeType === "number";
 }

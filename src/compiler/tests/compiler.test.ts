@@ -157,9 +157,9 @@ describe("compiler", () => {
   });
 
   it("separates metadata from the content", () => {
-    const component = compile("test", "test.html", "<title>foo</title>bar");
+    const component = compile("test", "test.html", `<title>foo</title><link rel="stylesheet" href="foo.css"><script src="foo.js"></script>bar`);
 
-    expect(toHTML(component.metadata)).toBe("<title>foo</title>");
+    expect(toHTML(component.metadata)).toBe(`<title>foo</title><link rel="stylesheet" href="foo.css"><script src="foo.js"></script>`);
     expect(toHTML(component.content)).toBe("bar");
   });
 
