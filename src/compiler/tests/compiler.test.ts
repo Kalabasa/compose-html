@@ -44,10 +44,10 @@ describe("compiler", () => {
       `<div>Hi <script render="expr">name</script></div>`
     );
     expect(toHTML(component.staticScripts)).toBe(
-      `<script static="">const name = "Foo";</script>`
+      `<script>const name = "Foo";</script>`
     );
     expect(toHTML(component.clientScripts)).toBe(
-      `<script client="">console.log(name);</script>`
+      `<script>console.log(name);</script>`
     );
   });
 

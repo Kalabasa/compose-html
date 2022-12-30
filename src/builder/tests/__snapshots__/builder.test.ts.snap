@@ -24,6 +24,9 @@ exports[`builder builds project1 1`] = `
       border-radius: 11px;
     }
   </style>
+  <script>
+    document.querySelectorAll(".button");
+  </script>
 </head>
 <body>
   <div class="header">

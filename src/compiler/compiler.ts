@@ -267,9 +267,11 @@ function processElement(element: Element, context: Context): boolean {
       if (isRender) {
         processRenderScript(element as HTMLScriptElement, context);
       } else if (isStatic) {
+        element.removeAttribute("static");
         context.staticScripts.push(element as HTMLScriptElement);
         element.remove();
       } else if (isClient) {
+        element.removeAttribute("client");
         context.clientScripts.push(element as HTMLScriptElement);
         element.remove();
       }
