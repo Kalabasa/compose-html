@@ -4,6 +4,7 @@ import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
 import { renderScripts } from "./render_scripts";
+import { spreadAttrs } from "./spread_attrs";
 
 const DEFAULT_SLOT_NAME = "default";
 
@@ -22,6 +23,7 @@ export function renderComponent(
 
   const fragment = component.content.cloneNode(true);
 
+  spreadAttrs(fragment, attrs);
   renderScripts(fragment, component, attrs, render);
 
   // Key: slot name
@@ -124,3 +126,4 @@ function mapSlots(
 
   return map;
 }
+

@@ -2,11 +2,12 @@ import { compileFile } from "compiler/compiler";
 import { Component } from "compiler/component";
 import { toHTML } from "dom/dom";
 import glob from "glob";
-import { copyFileSync, lstatSync, mkdirSync, writeFileSync } from "node:fs";
+import { html as beautifyHTML, HTMLBeautifyOptions } from "js-beautify";
+import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
-import { html as beautifyHTML, HTMLBeautifyOptions } from "js-beautify";
 import { createLogger } from "util/log";
+import { extractScriptBundles } from "./bundler";
 
 type BuildOptions = {
   inputDir?: string;
@@ -62,7 +63,7 @@ export function build(options: BuildOptions = {}) {
   }
   const renderer = new Renderer(componentMap);
   logger.debug("Loaded components:", componentMap.keys());
- 
+
   // copy non-HTML files
   for (const file of nonHTMLFiles) {
     const relPath = path.relative(rootDir, file);
@@ -73,18 +74,18 @@ export function build(options: BuildOptions = {}) {
   }
 
   // render pages
+  const pages: Array<{
+    srcPath: string;
+    pagePath: string;
+    outPath: string;
+    nodes: Node[];
+  }> = [];
   for (const component of componentMap.values()) {
     if (!component.page || !component.filePath.startsWith(rootDir)) continue;
-
-    let pageHTML = toHTML(renderer.render(component));
-
-    if (beautify) {
-      initBeautifyDefaults(beautify, pageHTML);
-      pageHTML = beautifyHTML(pageHTML, beautify);
-    }
+    const nodes = renderer.render(component);
 
     const pagePath = path.relative(rootDir, component.filePath);
-    const outFilePath =
+    const outPath =
       component.name === "index"
         ? path.resolve(outputDir, pagePath)
         : path.resolve(
@@ -94,14 +95,28 @@ export function build(options: BuildOptions = {}) {
             "index.html"
           );
 
-    mkdirSync(path.dirname(outFilePath), { recursive: true });
-    writeFileSync(outFilePath, pageHTML);
-    logger.info(
-      "Rendered",
-      formatPath(component.filePath),
-      "→",
-      formatPath(outFilePath)
-    );
+    pages.push({ srcPath: component.filePath, pagePath, outPath, nodes });
+  }
+
+  const scriptBundles = extractScriptBundles(pages);
+
+  for (const { relPath, code } of scriptBundles) {
+    const outPath = path.resolve(outputDir, relPath);
+    mkdirSync(path.dirname(outPath), { recursive: true });
+    writeFileSync(outPath, code);
+    logger.info("Bundled script →", formatPath(outPath));
+  }
+
+  for (const { srcPath, outPath, nodes } of pages) {
+    let html = toHTML(nodes);
+    if (beautify) {
+      initBeautifyDefaults(beautify, html);
+      html = beautifyHTML(html, beautify);
+    }
+
+    mkdirSync(path.dirname(outPath), { recursive: true });
+    writeFileSync(outPath, html);
+    logger.info("Rendered", formatPath(srcPath), "→", formatPath(outPath));
   }
 }
 

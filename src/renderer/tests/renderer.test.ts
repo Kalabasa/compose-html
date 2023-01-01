@@ -55,6 +55,19 @@ describe("renderer", () => {
     expect(toHTML(output)).toBe(`<img class="va" src="vb" alt="Test">`);
   });
 
+  it("renders spread attributes", () => {
+    const renderer = new Renderer(
+      new Map([
+        ["inner", compile("inner", "inner.html", "<div ...attrs>inner</div>")],
+      ])
+    );
+    const output = renderer.render(
+      compile("test", "test.html", `<inner class="foo" data-bar="x"/>`)
+    );
+
+    expect(toHTML(output)).toBe(`<div class="foo" data-bar="x">inner</div>`);
+  });
+
   it("renders a page component", () => {
     const renderer = new Renderer();
     const output = renderer.render(

@@ -54,4 +54,26 @@ describe("render_component", () => {
 
     expect(toHTML(output)).toBe(`<p>Uh oh</p>`);
   });
+
+  it("override attributes via spread attributes", () => {
+    const renderer = new Renderer(
+      new Map([
+        [
+          "inner",
+          compile(
+            "inner",
+            "inner.html",
+            `<div data-pre="pre" ...attrs data-post="post">inner</div>`
+          ),
+        ],
+      ])
+    );
+    const output = renderer.render(
+      compile("test", "test.html", `<inner data-pre="foo" data-post="foo"/>`)
+    );
+
+    expect(toHTML(output)).toBe(
+      `<div data-pre="foo" data-post="post">inner</div>`
+    );
+  });
 });

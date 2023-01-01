@@ -2,7 +2,7 @@ import { Component } from "compiler/component";
 import { appendChild, childNodesOf, isElement, toHTML } from "dom/dom";
 import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
-import { mapAttrs } from "./attr_helpers";
+import { mapAttrs } from "./map_attrs";
 import { renderComponent } from "./render_component";
 import { renderPage } from "./render_page";
 

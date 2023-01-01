@@ -1,7 +1,8 @@
 import { Component } from "compiler/component";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
-import { rawHTML, RawHTML, rawHTMLSymbol } from "./raw_html";
+import { mapAttrsForScript } from "./map_attrs";
+import { rawHTML, RawHTML } from "./raw_html";
 
 export function createVM(
   component: Component,
@@ -13,7 +14,7 @@ export function createVM(
   const fullContext = createContext({
     require: wrapRequire(require, component.filePath),
     html: htmlTag,
-    attrs,
+    attrs: mapAttrsForScript(attrs),
     ...context,
   });
 
