@@ -63,7 +63,10 @@ function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
   if (isElement(inOutNode)) {
     renderElementAttrs(inOutNode, runCode);
 
-    if (isInlineJavaScriptElement(inOutNode) && inOutNode.hasAttribute("render")) {
+    if (
+      isInlineJavaScriptElement(inOutNode) &&
+      inOutNode.hasAttribute("render")
+    ) {
       renderScriptElement(inOutNode as HTMLScriptElement, runCode);
       return;
     }
@@ -81,7 +84,12 @@ function renderElementAttrs(
   for (const attr of Array.from(inOutElement.attributes)) {
     let renderedAttrValue = renderAttrValueIfDynamic(attr.value, runCode);
     if (renderedAttrValue) {
-      inOutElement.setAttribute(attr.name, renderedAttrValue.value);
+      const { value } = renderedAttrValue;
+      if (value == null) {
+        inOutElement.removeAttribute(attr.name);
+      } else {
+        inOutElement.setAttribute(attr.name, String(value));
+      }
     }
   }
 }
@@ -89,7 +97,7 @@ function renderElementAttrs(
 function renderAttrValueIfDynamic(
   attrValue: string,
   runCode: (code: string) => unknown
-): { value: string } | undefined {
+): { value?: any } | undefined {
   const marked =
     attrValue.startsWith(SCRIPT_DELIMITER_OPEN) &&
     attrValue.endsWith(SCRIPT_DELIMITER_CLOSE);
@@ -97,7 +105,7 @@ function renderAttrValueIfDynamic(
   if (!marked) return undefined;
 
   const expr = attrValue.slice(1, -1);
-  const newValue = String(runCode(expr));
+  const newValue = runCode(expr);
 
   logger.debug("rendered attr:", `"${attrValue}"`, "→", `"${newValue}"`);
   return { value: newValue };

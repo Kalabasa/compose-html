@@ -101,4 +101,21 @@ describe("render_scripts", () => {
 
     expect(toHTML(content)).toBe("88");
   });
+
+  it("renders dynamic attributes", () => {
+    const content = parse(`<img class="{a}" src="{b}" alt="Test">`);
+    const component = compile("test", "test.html", `<script static>const a = "va"; const b = "vb";</script>`);
+
+    renderScripts(content, component, {}, renderList);
+
+    expect(toHTML(content)).toBe(`<img class="va" src="vb" alt="Test">`);
+  });
+
+  it("does not render null attributes", () => {
+    const content = parse(`<div data-foo="{null}" data-bar="{undefined}"></div>`);
+
+    renderScripts(content, component, {}, renderList);
+
+    expect(toHTML(content)).toBe(`<div></div>`);
+  });
 });
