@@ -158,7 +158,7 @@ function wrapCode(code: string, script: HTMLScriptElement): string {
   if (render === "gen") {
     return `[...(function*(){${code}})()]`;
   } else if (render === "func") {
-    return `[(function*(){${code}})()]`;
+    return `[(function(){${code}})()]`;
   }
   check(render === "expr");
   return `[${code}]`;

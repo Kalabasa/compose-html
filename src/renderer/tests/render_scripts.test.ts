@@ -30,6 +30,26 @@ describe("render_scripts", () => {
     expect(toHTML(content)).toBe("<div>One plus one is 2.</div>");
   });
 
+  it("renders return value of a func type", () => {
+    const content = parse(
+      `<script render="func">return "foo"</script>`
+    );
+
+    renderScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe("foo");
+  });
+
+  it("renders yielded values of a gen type", () => {
+    const content = parse(
+      `<script render="gen">yield "foo"; yield "bar";</script>`
+    );
+
+    renderScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe("foobar");
+  });
+
   it("reads script local variable", () => {
     const content = parse(
       `<div>Foo? <script render="expr">foo</script>.</div>`
