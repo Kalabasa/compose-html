@@ -93,14 +93,12 @@ export async function build(options: BuildOptions = {}) {
   }
 
   // render pages
-  const pagePromises: Array<
-    Promise<{
-      srcPath: string;
-      pagePath: string;
-      outPath: string;
-      nodes: Node[];
-    }>
-  > = [];
+  const pages: Array<{
+    srcPath: string;
+    pagePath: string;
+    outPath: string;
+    nodes: Node[];
+  }> = [];
 
   const cwd = process.cwd();
   try {
@@ -121,22 +119,19 @@ export async function build(options: BuildOptions = {}) {
       mkdirSync(outDir, { recursive: true });
       process.chdir(outDir);
 
-      const nodesPromise = renderer.render(component);
+      const nodes = await renderer.render(component);
 
-      pagePromises.push(
-        nodesPromise.then((nodes) => ({
-          srcPath: component.filePath,
-          pagePath,
-          outPath,
-          nodes,
-        }))
-      );
+      pages.push({
+        srcPath: component.filePath,
+        pagePath,
+        outPath,
+        nodes,
+      });
     }
   } finally {
     process.chdir(cwd);
   }
 
-  const pages = await Promise.all(pagePromises);
   const scriptBundles = extractScriptBundles(pages);
 
   for (const { relPath, code } of scriptBundles) {
