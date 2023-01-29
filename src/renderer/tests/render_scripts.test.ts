@@ -20,75 +20,85 @@ describe("render_scripts", () => {
     );
   });
 
-  it("independent expression", () => {
+  it("independent expression", async () => {
     const content = parse(
       `<div>One plus one is <script render="expr">1 + 1</script>.</div>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>One plus one is 2.</div>");
   });
 
-  it("renders return value of a func type", () => {
+  it("renders return value of a func type", async () => {
     const content = parse(
       `<script render="func">return "foo"</script>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("foo");
   });
 
-  it("renders yielded values of a gen type", () => {
+  it("renders async value of a func type", async () => {
+    const content = parse(
+      `<script render="func">return await Promise.resolve("foo")</script>`
+    );
+
+    await renderScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe("foo");
+  });
+
+  it("renders yielded values of a gen type", async () => {
     const content = parse(
       `<script render="gen">yield "foo"; yield "bar";</script>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("foobar");
   });
 
-  it("reads script local variable", () => {
+  it("reads script local variable", async () => {
     const content = parse(
       `<div>Foo? <script render="expr">foo</script>.</div>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>Foo? 42.</div>");
   });
 
-  it("reads attribute", () => {
+  it("reads attribute", async () => {
     const content = parse(
       `<div>Yeah? <script render="expr">attrs.yeah</script>.</div>`
     );
 
-    renderScripts(content, component, { yeah: "Nah" }, [], renderList);
+    await renderScripts(content, component, { yeah: "Nah" }, [], renderList);
 
     expect(toHTML(content)).toBe("<div>Yeah? Nah.</div>");
   });
 
-  it("reads children", () => {
+  it("reads children", async () => {
     const content = parse(`<script render="expr">children[0]</script>`);
 
-    renderScripts(content, component, {}, [createTextNode("foo")], renderList);
+    await renderScripts(content, component, {}, [createTextNode("foo")], renderList);
 
     expect(toHTML(content)).toBe("foo");
   });
 
-  it("renders html template literal", () => {
+  it("renders html template literal", async () => {
     const content = parse(
       '<script render="expr">html`<p>literally ${foo}</p>`</script>'
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<p>literally 42</p>");
   });
 
-  it("executes a script local function", () => {
+  it("executes a script local function", async () => {
     const content = parse(`<script render="expr">bar()</script>`);
     const component = compile(
       "test",
@@ -96,12 +106,12 @@ describe("render_scripts", () => {
       `<script static>function bar() { return "Hey!"; }</script>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("Hey!");
   });
 
-  it("imports a node module", () => {
+  it("imports a node module", async () => {
     const content = parse(`<script render="expr">bar('a', 'b')</script>`);
     const component = compile(
       "test",
@@ -115,22 +125,22 @@ describe("render_scripts", () => {
 </script>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("a/b");
   });
 
-  it("imports a relative module", () => {
+  it("imports a relative module", async () => {
     const filePath = path.resolve(__dirname, "data/root.html");
     const content = parse(`<script render="expr">bar</script>`);
     const component = compileFile(filePath);
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("88");
   });
 
-  it("renders dynamic attributes", () => {
+  it("renders dynamic attributes", async () => {
     const content = parse(`<img class="{a}" src="{b}" alt="Test">`);
     const component = compile(
       "test",
@@ -138,17 +148,30 @@ describe("render_scripts", () => {
       `<script static>const a = "va"; const b = "vb";</script>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<img class="va" src="vb" alt="Test">`);
   });
 
-  it("does not render null attributes", () => {
+  it("renders async dynamic attributes", async () => {
+    const content = parse(`<img src="{await foo()}">`);
+    const component = compile(
+      "test",
+      "test.html",
+      `<script static>async function foo() { return "foo"; }</script>`
+    );
+
+    await renderScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe(`<img src="foo">`);
+  });
+
+  it("does not render null attributes", async () => {
     const content = parse(
       `<div data-foo="{null}" data-bar="{undefined}"></div>`
     );
 
-    renderScripts(content, component, {}, [], renderList);
+    await renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<div></div>`);
   });

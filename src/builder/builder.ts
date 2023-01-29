@@ -27,7 +27,7 @@ const DEFAULT_OPTIONS = {
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
-export function build(options: BuildOptions = {}) {
+export async function build(options: BuildOptions = {}) {
   const {
     inputDir,
     outputDir,
@@ -93,12 +93,14 @@ export function build(options: BuildOptions = {}) {
   }
 
   // render pages
-  const pages: Array<{
-    srcPath: string;
-    pagePath: string;
-    outPath: string;
-    nodes: Node[];
-  }> = [];
+  const pagePromises: Array<
+    Promise<{
+      srcPath: string;
+      pagePath: string;
+      outPath: string;
+      nodes: Node[];
+    }>
+  > = [];
 
   const cwd = process.cwd();
   try {
@@ -119,14 +121,22 @@ export function build(options: BuildOptions = {}) {
       mkdirSync(outDir, { recursive: true });
       process.chdir(outDir);
 
-      const nodes = renderer.render(component);
+      const nodesPromise = renderer.render(component);
 
-      pages.push({ srcPath: component.filePath, pagePath, outPath, nodes });
+      pagePromises.push(
+        nodesPromise.then((nodes) => ({
+          srcPath: component.filePath,
+          pagePath,
+          outPath,
+          nodes,
+        }))
+      );
     }
   } finally {
     process.chdir(cwd);
   }
 
+  const pages = await Promise.all(pagePromises);
   const scriptBundles = extractScriptBundles(pages);
 
   for (const { relPath, code } of scriptBundles) {

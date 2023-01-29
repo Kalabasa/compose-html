@@ -121,7 +121,7 @@ describe("compiler", () => {
     expect(component.htmlLiterals).toHaveLength(1);
     expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
     expect(toHTML(component.content)).toBe(
-      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
+      `12:00 <script render="expr">canEdit ?  (await __renderHTMLLiteral__(0))  : ""</script>`
     );
   });
 
@@ -135,7 +135,7 @@ describe("compiler", () => {
     expect(component.htmlLiterals).toHaveLength(1);
     expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
     expect(toHTML(component.content)).toBe(
-      `12:00 <script render="expr">canEdit ?  (__renderHTMLLiteral__(0))  : ""</script>`
+      `12:00 <script render="expr">canEdit ?  (await __renderHTMLLiteral__(0))  : ""</script>`
     );
   });
 
@@ -148,11 +148,11 @@ describe("compiler", () => {
 
     expect(component.htmlLiterals).toHaveLength(2);
     expect(toHTML(component.htmlLiterals[0])).toBe(
-      `<b>we <script render="expr">"go " +  (__renderHTMLLiteral__(1)) </script></b>`
+      `<b>we <script render="expr">"go " +  (await __renderHTMLLiteral__(1)) </script></b>`
     );
     expect(toHTML(component.htmlLiterals[1])).toBe(`<i>again!</i>`);
     expect(toHTML(component.content)).toBe(
-      `<script render="expr">"Here " +  (__renderHTMLLiteral__(0)) </script>`
+      `<script render="expr">"Here " +  (await __renderHTMLLiteral__(0)) </script>`
     );
   });
 

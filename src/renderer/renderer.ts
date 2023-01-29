@@ -31,7 +31,7 @@ export class Renderer {
     );
   }
 
-  render(component: Component): Node[] {
+  async render(component: Component): Promise<Node[]> {
     logger.debug(
       "====== render start ======",
       "\nroot component:",
@@ -49,8 +49,8 @@ export class Renderer {
       };
     }
 
-    let result = this.renderList(
-      renderComponent(component, [], [], this.renderList),
+    let result = await this.renderList(
+      await renderComponent(component, [], [], this.renderList),
       context
     );
 
@@ -91,8 +91,8 @@ export class Renderer {
     return result;
   }
 
-  renderNode(node: Node, context?: Context): Node[] {
-    const children = this.renderList(childNodesOf(node), context);
+  async renderNode(node: Node, context?: Context): Promise<Node[]> {
+    const children = await this.renderList(childNodesOf(node), context);
 
     let result: Node[];
 
@@ -107,7 +107,7 @@ export class Renderer {
         );
       }
 
-      const componentOutput = renderComponent(
+      const componentOutput = await renderComponent(
         component,
         mapAttrs(node.attributes),
         children,
@@ -128,7 +128,7 @@ export class Renderer {
         }
       }
 
-      result = this.renderList(componentOutput, context);
+      result = await this.renderList(componentOutput, context);
     } else {
       const clone = node.cloneNode(false);
       for (const child of children) {
@@ -140,16 +140,22 @@ export class Renderer {
     return result;
   }
 
-  renderList = (nodes: Iterable<Node>, context?: Context): Node[] => {
-    return [...this.generateRenderedList(nodes, context)];
+  renderList = async (nodes: Iterable<Node>, context?: Context): Promise<Node[]> => {
+    // todo: parallelize (if safe)
+    const rendered = []; 
+    for await (const item of this.generateRenderedList(nodes, context)) {
+      rendered.push(item);
+    }
+    return rendered;
   };
 
-  private *generateRenderedList(
+  private async *generateRenderedList(
     nodes: Iterable<Node>,
     context?: Context
-  ): Generator<Node> {
+  ): AsyncGenerator<Node> {
+    // todo: parallelize (if safe)
     for (const node of nodes) {
-      for (const rendered of this.renderNode(node, context)) {
+      for (const rendered of await this.renderNode(node, context)) {
         yield rendered;
       }
     }

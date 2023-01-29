@@ -406,7 +406,7 @@ function processScriptHtmlLiterals(
 
 function addHtmlLiteral(html: string, context: Context): string {
   const index = context.htmlLiterals.push(parse(html)) - 1;
-  return ` (__renderHTMLLiteral__(${index})) `;
+  return ` (await __renderHTMLLiteral__(${index})) `;
 }
 
 function stringify(array: (string | Node)[]) {

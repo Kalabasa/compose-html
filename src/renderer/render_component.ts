@@ -12,19 +12,19 @@ const SLOT_USED = Symbol("SLOT_USED");
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
-export function renderComponent(
+export async function renderComponent(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  render: (nodes: Iterable<Node>) => any
-): Iterable<Node> {
+  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
+): Promise<Iterable<Node>> {
   logger.debug("component start:", `<${component.name} .. >`);
   logger.group();
 
   const fragment = component.content.cloneNode(true);
 
   spreadAttrs(fragment, attrs);
-  renderScripts(fragment, component, attrs, children, render);
+  await renderScripts(fragment, component, attrs, children, renderList);
 
   // Key: slot name
   // Value is `SLOT_USED` if slot has been used

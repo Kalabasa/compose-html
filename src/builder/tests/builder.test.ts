@@ -6,11 +6,11 @@ import { tmpdir } from "node:os";
 import { relative, resolve } from "node:path";
 
 describe("builder", () => {
-  it.each(["project1"])("builds %s", (projectDir) => {
+  it.each(["project1"])("builds %s", async (projectDir) => {
     const inputDir = resolve(__dirname, "data", projectDir);
     const outputDir = mkdtempSync(resolve(tmpdir(), "jest-builder-"));
     try {
-      build({
+      await build({
         inputDir,
         outputDir,
       });

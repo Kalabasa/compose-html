@@ -3,9 +3,9 @@ import { toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 
 describe("renderer", () => {
-  it("renders plain HTML", () => {
+  it("renders plain HTML", async () => {
     const renderer = new Renderer();
-    const output = renderer.render(
+    const output = await renderer.render(
       compile(
         "test",
         "test.html",
@@ -18,9 +18,9 @@ describe("renderer", () => {
     );
   });
 
-  it("renders unknown HTML elements as is", () => {
+  it("renders unknown HTML elements as is", async () => {
     const renderer = new Renderer();
-    const output = renderer.render(
+    const output = await renderer.render(
       compile(
         "test",
         "test.html",
@@ -33,18 +33,18 @@ describe("renderer", () => {
     );
   });
 
-  it("renders <template> correctly", () => {
+  it("renders <template> correctly", async () => {
     const renderer = new Renderer();
-    const output = renderer.render(
+    const output = await renderer.render(
       compile("test", "test.html", `<template>Quintessece</template>`)
     );
 
     expect(toHTML(output)).toBe(`<template>Quintessece</template>`);
   });
 
-  it("renders dynamic attributes", () => {
+  it("renders dynamic attributes", async () => {
     const renderer = new Renderer();
-    const output = renderer.render(
+    const output = await renderer.render(
       compile(
         "test",
         "test.html",
@@ -55,22 +55,22 @@ describe("renderer", () => {
     expect(toHTML(output)).toBe(`<img class="va" src="vb" alt="Test">`);
   });
 
-  it("renders spread attributes", () => {
+  it("renders spread attributes", async () => {
     const renderer = new Renderer(
       new Map([
         ["inner", compile("inner", "inner.html", "<div ...attrs>inner</div>")],
       ])
     );
-    const output = renderer.render(
+    const output = await renderer.render(
       compile("test", "test.html", `<inner class="foo" data-bar="x"/>`)
     );
 
     expect(toHTML(output)).toBe(`<div class="foo" data-bar="x">inner</div>`);
   });
 
-  it("renders a page component", () => {
+  it("renders a page component", async () => {
     const renderer = new Renderer();
-    const output = renderer.render(
+    const output = await renderer.render(
       compile(
         "test",
         "test.html",
@@ -83,14 +83,14 @@ describe("renderer", () => {
     );
   });
 
-  it("renders combined metadata in a page", () => {
+  it("renders combined metadata in a page", async () => {
     const myMeta = compile(
       "my-meta",
       "my-meta.html",
       `<head><meta name="origin" content="local"></head>`
     );
     const renderer = new Renderer(new Map([["my-meta", myMeta]]));
-    const output = renderer.render(
+    const output = await renderer.render(
       compile(
         "test",
         "test.html",
@@ -103,7 +103,7 @@ describe("renderer", () => {
     );
   });
 
-  it("orders script dependencies correctly", () => {
+  it("orders script dependencies correctly", async () => {
     const componentA = compile(
       "a",
       "a.html",
@@ -124,7 +124,7 @@ describe("renderer", () => {
         ["d", componentD],
       ])
     );
-    const output = renderer.render(
+    const output = await renderer.render(
       compile("test", "test.html", `<html><a/></html>`)
     );
 

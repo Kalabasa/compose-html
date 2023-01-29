@@ -81,7 +81,7 @@ describe("Examples", () => {
 
     const skip = !!stub.expectTag.match(/\bskip\b/);
     const testFunc = skip ? test.skip : test;
-    testFunc(testName, () => {
+    testFunc(testName, async () => {
       const example = stub.compiled();
 
       if (!hasExpectation(example)) return;
@@ -90,7 +90,7 @@ describe("Examples", () => {
       const renderer = new Renderer(
         compiledComponentDir(componentDir.get(stub.dirName)!)
       );
-      const output = renderer.render(component);
+      const output = await renderer.render(component);
       expect(toHTML(output).trim()).toBe(toHTML(expected!).trim());
     });
   }

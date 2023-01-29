@@ -20,15 +20,15 @@ import { createVM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
-export function renderScripts(
+export async function renderScripts(
   inOutFragment: DocumentFragment,
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  render: (nodes: Iterable<Node>) => any
-): void {
+  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
+): Promise<void> {
   const vm = createVM(component, attrs, children, {
-    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, render),
+    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, renderList),
   });
 
   const scriptCode = component.staticScripts
@@ -43,47 +43,52 @@ export function renderScripts(
   }
 
   for (const node of stableChildNodesOf(inOutFragment)) {
-    renderNode(node, vm.runCode);
+    await renderNode(node, vm.runCode);
   }
 }
 
 function createHTMLLiteralRenderFunc(
   component: Component,
-  renderList: (nodes: Iterable<Node>) => any
-): any {
-  return (index: number) => {
+  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
+): (index: number) => Promise<Node[]> {
+  return async (index: number) => {
     logger.debug("render HTML literal", index);
     logger.group();
-    const result = renderList(childNodesOf(component.htmlLiterals[index]));
+    const result = await renderList(
+      childNodesOf(component.htmlLiterals[index])
+    );
     logger.groupEnd();
     return result;
   };
 }
 
-function renderNode(inOutNode: Node, runCode: (code: string) => unknown): void {
+async function renderNode(
+  inOutNode: Node,
+  runCode: (code: string) => unknown
+): Promise<void> {
   if (isElement(inOutNode)) {
-    renderElementAttrs(inOutNode, runCode);
+    await renderElementAttrs(inOutNode, runCode);
 
     if (
       isInlineJavaScriptElement(inOutNode) &&
       inOutNode.hasAttribute("render")
     ) {
-      renderScriptElement(inOutNode as HTMLScriptElement, runCode);
+      await renderScriptElement(inOutNode as HTMLScriptElement, runCode);
       return;
     }
   }
 
   for (const childNode of stableChildNodesOf(inOutNode)) {
-    renderNode(childNode, runCode);
+    await renderNode(childNode, runCode);
   }
 }
 
-function renderElementAttrs(
+async function renderElementAttrs(
   inOutElement: Element,
   runCode: (code: string) => unknown
 ) {
   for (const attr of Array.from(inOutElement.attributes)) {
-    let renderedAttrValue = renderAttrValueIfDynamic(attr.value, runCode);
+    let renderedAttrValue = await renderAttrValueIfDynamic(attr.value, runCode);
     if (renderedAttrValue) {
       const { value } = renderedAttrValue;
       if (value == null) {
@@ -95,10 +100,10 @@ function renderElementAttrs(
   }
 }
 
-function renderAttrValueIfDynamic(
+async function renderAttrValueIfDynamic(
   attrValue: string,
   runCode: (code: string) => unknown
-): { value?: any } | undefined {
+): Promise<{ value?: any } | undefined> {
   const marked =
     attrValue.startsWith(SCRIPT_DELIMITER_OPEN) &&
     attrValue.endsWith(SCRIPT_DELIMITER_CLOSE);
@@ -106,22 +111,26 @@ function renderAttrValueIfDynamic(
   if (!marked) return undefined;
 
   const expr = attrValue.slice(1, -1);
-  const newValue = runCode(expr);
+  const newValue = await runCode(`(async function(){ return ${expr} })()`);
 
   logger.debug("rendered attr:", `"${attrValue}"`, "→", `"${newValue}"`);
   return { value: newValue };
 }
 
-function renderScriptElement(
+async function renderScriptElement(
   inOutElement: HTMLScriptElement,
   runCode: (code: string) => unknown
 ) {
   const code = inOutElement.innerHTML;
 
   logger.debug("render script:", formatJSValue(code.replace(/\n/g, " ")));
-  const results = Array.from(
-    unwrapResults(runCode(wrapCode(code, inOutElement)) as any[])
+  const asyncResults = unwrapResults(
+    runCode(wrapCode(code, inOutElement)) as any
   );
+  const results = [];
+  for await (const result of asyncResults) {
+    results.push(result);
+  }
 
   logger.debug("render script result:", results);
   inOutElement.replaceWith(...results);
@@ -130,16 +139,18 @@ function renderScriptElement(
   // so we renderNode() the results here
   for (const item of results) {
     if (!isNode(item)) continue;
-    renderNode(item, runCode);
+    await renderNode(item, runCode);
   }
 }
 
-function* unwrapResults(results: Iterable<any>): Generator<string | Node> {
-  for (const result of results) {
+async function* unwrapResults(
+  results: Promise<Iterable<any>>
+): AsyncGenerator<string | Node> {
+  for (let result of await results) {
     if (typeof result === "string" || result instanceof String) {
       yield String(result);
     } else if (isIterable(result)) {
-      yield* unwrapResults(result);
+      yield* unwrapResults(Promise.resolve(result));
     } else if (isNode(result)) {
       yield result;
     } else if (isRawHTML(result)) {
@@ -152,14 +163,23 @@ function* unwrapResults(results: Iterable<any>): Generator<string | Node> {
   }
 }
 
+// wraps code as a Promise<Iterable<__>> for uniform handling
 function wrapCode(code: string, script: HTMLScriptElement): string {
   const render = script.getAttribute("render");
 
   if (render === "gen") {
-    return `[...(function*(){${code}})()]`;
+    return wrapGenCode(code);
   } else if (render === "func") {
-    return `[(function(){${code}})()]`;
+    return wrapFuncCode(code);
   }
   check(render === "expr");
-  return `[${code}]`;
+  return wrapFuncCode(`return (${code})`);
+}
+
+function wrapFuncCode(code: string): string {
+  return `Promise.all([(async function(){${code}})()])`;
+}
+
+function wrapGenCode(code: string): string {
+  return `(async function(){ const __a = []; for await (const __v of (async function*(){${code}})()) __a.push(__v); return __a })()`;
 }
