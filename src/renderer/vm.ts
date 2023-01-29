@@ -14,6 +14,7 @@ export function createVM(
 } {
   const fullContext = createContext({
     require: wrapRequire(require, component.filePath),
+    console,
     html: htmlTag,
     attrs: mapAttrsForScript(attrs),
     children, // todo: make immutable when exposed

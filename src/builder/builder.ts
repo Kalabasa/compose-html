@@ -99,21 +99,32 @@ export function build(options: BuildOptions = {}) {
     outPath: string;
     nodes: Node[];
   }> = [];
-  for (const component of pageComponents) {
-    const nodes = renderer.render(component);
 
-    const pagePath = path.relative(rootDir, component.filePath);
-    const outPath =
-      component.name === "index"
-        ? path.resolve(outputDir, pagePath)
-        : path.resolve(
-            outputDir,
-            path.dirname(pagePath),
-            component.name,
-            "index.html"
-          );
+  const cwd = process.cwd();
+  try {
+    for (const component of pageComponents) {
+      const pagePath = path.relative(rootDir, component.filePath);
+      const outPath =
+        component.name === "index"
+          ? path.resolve(outputDir, pagePath)
+          : path.resolve(
+              outputDir,
+              path.dirname(pagePath),
+              component.name,
+              "index.html"
+            );
 
-    pages.push({ srcPath: component.filePath, pagePath, outPath, nodes });
+      // run scripts relative to page output dir
+      const outDir = path.dirname(outPath);
+      mkdirSync(outDir, { recursive: true });
+      process.chdir(outDir);
+
+      const nodes = renderer.render(component);
+
+      pages.push({ srcPath: component.filePath, pagePath, outPath, nodes });
+    }
+  } finally {
+    process.chdir(cwd);
   }
 
   const scriptBundles = extractScriptBundles(pages);
