@@ -61,16 +61,19 @@ export function build(options: BuildOptions = {}) {
   const componentMap = new Map<string, Component>();
   for (const filePath of htmlFiles) {
     const component = compileFile(filePath);
+
     if (!component.page || component.name != "index") {
       check(!componentMap.has(component.name), `Component name must be unique. Found duplicate: ${component.name}`);
       componentMap.set(component.name, component);
     }
-    if (component.page) {
+
+    if (component.page && component.filePath.startsWith(rootDir)) {
       pageComponents.push(component);
     }
   }
-  const renderer = new Renderer(componentMap);
+  
   logger.debug("Loaded components:", componentMap.keys());
+  const renderer = new Renderer(componentMap);
 
   // copy non-HTML files
   for (const file of nonHTMLFiles) {
@@ -89,7 +92,6 @@ export function build(options: BuildOptions = {}) {
     nodes: Node[];
   }> = [];
   for (const component of pageComponents) {
-    if (!component.page || !component.filePath.startsWith(rootDir)) continue;
     const nodes = renderer.render(component);
 
     const pagePath = path.relative(rootDir, component.filePath);
