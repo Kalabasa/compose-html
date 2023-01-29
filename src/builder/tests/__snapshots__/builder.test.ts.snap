@@ -10,6 +10,14 @@ exports[`builder builds project1 1`] = `
       color: blue;
     }
   </style>
+  <style>
+    .button {
+      border-radius: 11px;
+    }
+  </style>
+  <script>
+    document.querySelectorAll(".button");
+  </script>
 </head>
 <body>
   <div class="header">
@@ -17,6 +25,7 @@ exports[`builder builds project1 1`] = `
 
   </div>
   <div>This is a test project.</div>
+  <button class="button">Fund</button>
 </body>
 </html>
 
