@@ -7,6 +7,7 @@ import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
 import { createLogger } from "util/log";
+import { check } from "util/preconditions";
 import { extractScriptBundles } from "./bundler";
 
 type BuildOptions = {
@@ -55,11 +56,18 @@ export function build(options: BuildOptions = {}) {
   logger.info(htmlFiles.length, "html files");
   logger.info(nonHTMLFiles.length, "non-html files");
 
-  // compile HTML files as components
+  // compile HTML files
+  const pageComponents: Component[] = [];
   const componentMap = new Map<string, Component>();
   for (const filePath of htmlFiles) {
     const component = compileFile(filePath);
-    componentMap.set(component.name, component);
+    if (!component.page || component.name != "index") {
+      check(!componentMap.has(component.name), `Component name must be unique. Found duplicate: ${component.name}`);
+      componentMap.set(component.name, component);
+    }
+    if (component.page) {
+      pageComponents.push(component);
+    }
   }
   const renderer = new Renderer(componentMap);
   logger.debug("Loaded components:", componentMap.keys());
@@ -80,7 +88,7 @@ export function build(options: BuildOptions = {}) {
     outPath: string;
     nodes: Node[];
   }> = [];
-  for (const component of componentMap.values()) {
+  for (const component of pageComponents) {
     if (!component.page || !component.filePath.startsWith(rootDir)) continue;
     const nodes = renderer.render(component);
 

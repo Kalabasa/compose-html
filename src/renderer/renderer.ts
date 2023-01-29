@@ -35,10 +35,9 @@ export class Renderer {
     logger.debug(
       "====== render start ======",
       "\nroot component:",
-      component.name,
-      "\n\n" + formatHTMLValue(toHTML(component.content)),
-      "\n"
+      component.name
     );
+    logger.trace("\n" + formatHTMLValue(toHTML(component.content)) + "\n");
 
     let context: Context | undefined;
 
@@ -71,17 +70,13 @@ export class Renderer {
     logger.debug(
       "====== render done ======",
       "\nroot component:",
-      component.name,
-      "\n\n" + formatHTMLValue(toHTML(result)),
-      "\n"
+      component.name
     );
+    logger.trace("\n" + formatHTMLValue(toHTML(result)) + "\n");
     return result;
   }
 
   renderNode(node: Node, context?: Context): Node[] {
-    logger.debug(node);
-    logger.group();
-
     const children = this.renderList(childNodesOf(node), context);
 
     let result: Node[];
@@ -127,7 +122,6 @@ export class Renderer {
       result = [clone];
     }
 
-    logger.groupEnd();
     return result;
   }
 

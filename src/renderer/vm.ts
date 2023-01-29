@@ -7,6 +7,7 @@ import { rawHTML, RawHTML } from "./raw_html";
 export function createVM(
   component: Component,
   attrs: Record<string, any>,
+  children: Node[],
   context: Record<string, any>
 ): {
   runCode: (code: string) => unknown;
@@ -15,6 +16,7 @@ export function createVM(
     require: wrapRequire(require, component.filePath),
     html: htmlTag,
     attrs: mapAttrsForScript(attrs),
+    children, // todo: make immutable when exposed
     ...context,
   });
 

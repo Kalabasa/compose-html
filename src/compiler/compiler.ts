@@ -60,10 +60,9 @@ export function compile(
     "\nname:",
     name,
     "\nfile path:",
-    filePath,
-    "\n\n" + formatHTMLValue(source.trim()),
-    "\n"
+    filePath
   );
+  logger.trace("\n" + formatHTMLValue(source.trim()) + "\n");
 
   const sourceFragment = parse(source);
   let content = sourceFragment.cloneNode(true);

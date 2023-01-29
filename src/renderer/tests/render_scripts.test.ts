@@ -1,6 +1,6 @@
 import { compile, compileFile } from "compiler/compiler";
 import { Component } from "compiler/component";
-import { parse, toHTML } from "dom/dom";
+import { createTextNode, parse, toHTML } from "dom/dom";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
 import { renderScripts } from "renderer/render_scripts";
@@ -25,7 +25,7 @@ describe("render_scripts", () => {
       `<div>One plus one is <script render="expr">1 + 1</script>.</div>`
     );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>One plus one is 2.</div>");
   });
@@ -35,7 +35,7 @@ describe("render_scripts", () => {
       `<div>Foo? <script render="expr">foo</script>.</div>`
     );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>Foo? 42.</div>");
   });
@@ -45,9 +45,17 @@ describe("render_scripts", () => {
       `<div>Yeah? <script render="expr">attrs.yeah</script>.</div>`
     );
 
-    renderScripts(content, component, { yeah: "Nah" }, renderList);
+    renderScripts(content, component, { yeah: "Nah" }, [], renderList);
 
     expect(toHTML(content)).toBe("<div>Yeah? Nah.</div>");
+  });
+
+  it("reads children", () => {
+    const content = parse(`<script render="expr">children[0]</script>`);
+
+    renderScripts(content, component, {}, [createTextNode("foo")], renderList);
+
+    expect(toHTML(content)).toBe("foo");
   });
 
   it("renders html template literal", () => {
@@ -55,7 +63,7 @@ describe("render_scripts", () => {
       '<script render="expr">html`<p>literally ${foo}</p>`</script>'
     );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<p>literally 42</p>");
   });
@@ -68,7 +76,7 @@ describe("render_scripts", () => {
       `<script static>function bar() { return "Hey!"; }</script>`
     );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("Hey!");
   });
@@ -87,7 +95,7 @@ describe("render_scripts", () => {
 </script>`
     );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("a/b");
   });
@@ -97,24 +105,30 @@ describe("render_scripts", () => {
     const content = parse(`<script render="expr">bar</script>`);
     const component = compileFile(filePath);
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("88");
   });
 
   it("renders dynamic attributes", () => {
     const content = parse(`<img class="{a}" src="{b}" alt="Test">`);
-    const component = compile("test", "test.html", `<script static>const a = "va"; const b = "vb";</script>`);
+    const component = compile(
+      "test",
+      "test.html",
+      `<script static>const a = "va"; const b = "vb";</script>`
+    );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<img class="va" src="vb" alt="Test">`);
   });
 
   it("does not render null attributes", () => {
-    const content = parse(`<div data-foo="{null}" data-bar="{undefined}"></div>`);
+    const content = parse(
+      `<div data-foo="{null}" data-bar="{undefined}"></div>`
+    );
 
-    renderScripts(content, component, {}, renderList);
+    renderScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<div></div>`);
   });

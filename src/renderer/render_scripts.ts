@@ -24,9 +24,10 @@ export function renderScripts(
   inOutFragment: DocumentFragment,
   component: Component,
   attrs: Record<string, any>,
+  children: Node[],
   render: (nodes: Iterable<Node>) => any
 ): void {
-  const vm = createVM(component, attrs, {
+  const vm = createVM(component, attrs, children, {
     __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, render),
   });
 

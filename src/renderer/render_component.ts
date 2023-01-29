@@ -24,7 +24,7 @@ export function renderComponent(
   const fragment = component.content.cloneNode(true);
 
   spreadAttrs(fragment, attrs);
-  renderScripts(fragment, component, attrs, render);
+  renderScripts(fragment, component, attrs, children, render);
 
   // Key: slot name
   // Value is `SLOT_USED` if slot has been used
@@ -37,11 +37,8 @@ export function renderComponent(
   }
 
   logger.groupEnd();
-  logger.debug(
-    "component done:",
-    `<${component.name} .. />`,
-    "→\n" + formatHTMLValue(toHTML(fragment))
-  );
+  logger.debug("component done:", `<${component.name} .. />`, "→", fragment);
+  logger.trace("\n" + formatHTMLValue(toHTML(fragment)) + "\n");
   return childNodesOf(fragment);
 }
 
@@ -126,4 +123,3 @@ function mapSlots(
 
   return map;
 }
-
