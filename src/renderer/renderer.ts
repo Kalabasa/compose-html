@@ -54,6 +54,21 @@ export class Renderer {
       context
     );
 
+    if (context) {
+      logger.debug(
+        "context update:",
+        context.metadata.size,
+        `(+${context.metadata.size - component.metadata.length})`,
+        "metadata,",
+        context.clientScripts.size,
+        `(+${context.clientScripts.size - component.clientScripts.length})`,
+        "clientScripts,",
+        context.styles.size,
+        `(+${context.styles.size - component.styles.length})`,
+        "styles."
+      );
+    }
+
     if (component.page && context) {
       result = [
         renderPage(result, {

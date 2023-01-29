@@ -62,16 +62,24 @@ export function build(options: BuildOptions = {}) {
   for (const filePath of htmlFiles) {
     const component = compileFile(filePath);
 
-    if (!component.page || component.name != "index") {
-      check(!componentMap.has(component.name), `Component name must be unique. Found duplicate: ${component.name}`);
+    if (component.page) {
+      if (component.filePath.startsWith(rootDir)) {
+        pageComponents.push(component);
+      } else {
+        logger.warn(
+          "Page component found outside root dir:",
+          component.filePath
+        );
+      }
+    } else {
+      check(
+        !componentMap.has(component.name),
+        `Component name must be unique. Found duplicate: ${component.name}`
+      );
       componentMap.set(component.name, component);
     }
-
-    if (component.page && component.filePath.startsWith(rootDir)) {
-      pageComponents.push(component);
-    }
   }
-  
+
   logger.debug("Loaded components:", componentMap.keys());
   const renderer = new Renderer(componentMap);
 
