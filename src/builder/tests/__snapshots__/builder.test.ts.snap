@@ -5,6 +5,11 @@ exports[`builder builds project1 1`] = `
 <html>
 <head>
   <title>About Project 1</title>
+  <style>
+    * {
+      color: blue;
+    }
+  </style>
 </head>
 <body>
   <div class="header">
@@ -19,6 +24,11 @@ exports[`builder builds project1 1`] = `
 <html>
 <head>
   <title>Project 1</title>
+  <style>
+    * {
+      color: red;
+    }
+  </style>
   <style>
     .button {
       border-radius: 11px;
