@@ -3,7 +3,7 @@ import { Component } from "compiler/component";
 import { toHTML } from "dom/dom";
 import glob from "glob";
 import { html as beautifyHTML, HTMLBeautifyOptions } from "js-beautify";
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import { Renderer } from "renderer/renderer";
 import { createLogger } from "util/log";
@@ -87,8 +87,20 @@ export async function build(options: BuildOptions = {}) {
   for (const file of nonHTMLFiles) {
     const relPath = path.relative(rootDir, file);
     const outFilePath = path.resolve(outputDir, relPath);
-    mkdirSync(path.dirname(outFilePath), { recursive: true });
-    copyFileSync(file, outFilePath);
+
+    // skip if file is not newer than the copy
+    if (fs.existsSync(outFilePath)) {
+      const outFileStats = fs.statSync(outFilePath);
+      if (outFileStats.isFile()) {
+        const fileStats = fs.statSync(file);
+        if (outFileStats.mtime > fileStats.mtime) {
+          continue;
+        }
+      }
+    }
+
+    fs.mkdirSync(path.dirname(outFilePath), { recursive: true });
+    fs.copyFileSync(file, outFilePath);
     logger.info("Copied", formatPath(file), "→", formatPath(outFilePath));
   }
 
@@ -116,7 +128,7 @@ export async function build(options: BuildOptions = {}) {
 
       // run scripts relative to page output dir
       const outDir = path.dirname(outPath);
-      mkdirSync(outDir, { recursive: true });
+      fs.mkdirSync(outDir, { recursive: true });
       process.chdir(outDir);
 
       const nodes = await renderer.render(component);
@@ -136,8 +148,8 @@ export async function build(options: BuildOptions = {}) {
 
   for (const { relPath, code } of scriptBundles) {
     const outPath = path.resolve(outputDir, relPath);
-    mkdirSync(path.dirname(outPath), { recursive: true });
-    writeFileSync(outPath, code);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, code);
     logger.info("Bundled script →", formatPath(outPath));
   }
 
@@ -148,8 +160,8 @@ export async function build(options: BuildOptions = {}) {
       html = beautifyHTML(html, beautify);
     }
 
-    mkdirSync(path.dirname(outPath), { recursive: true });
-    writeFileSync(outPath, html);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, html);
     logger.info("Rendered", formatPath(srcPath), "→", formatPath(outPath));
   }
 }
