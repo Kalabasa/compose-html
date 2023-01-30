@@ -98,6 +98,16 @@ describe("render_scripts", () => {
     expect(toHTML(content)).toBe("<p>literally 42</p>");
   });
 
+  it("renders html template literal from async func", async () => {
+    const content = parse(
+      '<script render="func">return html`<p>literally ${await Promise.resolve(foo)}</p>`</script>'
+    );
+
+    await renderScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe("<p>literally 42</p>");
+  });
+
   it("executes a script local function", async () => {
     const content = parse(`<script render="expr">bar()</script>`);
     const component = compile(

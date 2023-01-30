@@ -249,6 +249,7 @@ function processElement(element: Element, context: Context): boolean {
   switch (element.tagName.toLowerCase()) {
     case "script":
       if (!isInlineJavaScriptElement(element)) {
+        // external <script src="...">
         context.metadata.push(element);
         element.remove();
         return true;

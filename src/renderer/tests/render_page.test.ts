@@ -89,6 +89,9 @@ describe("renderPage", () => {
     title.innerHTML = "foo";
     const script = document.createElement("script");
     script.innerHTML = "console.log(1);";
+    const deferredScript = document.createElement("script");
+    deferredScript.defer = true;
+    deferredScript.innerHTML = "document.querySelector('*');";
     const style = document.createElement("style");
     style.innerHTML = "body { margin: 0; }";
 
@@ -97,14 +100,14 @@ describe("renderPage", () => {
         skeleton: testSkeleton,
       },
       metadata: [title],
-      clientScripts: [script],
+      clientScripts: [script, deferredScript],
       styles: [style],
     };
 
     const result = renderPage([], data);
 
     expect(toHTML(result)).toEqual(
-      `<html><head><title>foo</title><style>body { margin: 0; }</style><script>console.log(1);</script></head><body></body></html>`
+      `<html><head><title>foo</title><style>body { margin: 0; }</style><script>console.log(1);</script></head><body><script>document.querySelector('*');</script></body></html>`
     );
   });
 });

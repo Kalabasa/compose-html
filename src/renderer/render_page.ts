@@ -18,16 +18,37 @@ export function renderPage(bodyContent: Node[], pageData: PageData): Element {
   checkNotNull(head).replaceChildren(
     ...cloneNodes(pageData.metadata),
     ...cloneNodes(pageData.styles),
-    ...cloneNodes(pageData.clientScripts)
+    ...cloneNodes(pageData.clientScripts.filter(not(isDeferredScript)))
   );
 
-  // No need to clone bodyContent, it's an incremental object
-  checkNotNull(body).replaceChildren(...bodyContent);
+  checkNotNull(body).replaceChildren(
+    // No need to clone bodyContent, it's an incremental object
+    ...bodyContent,
+    ...removeDeferAttr(
+      cloneNodes(pageData.clientScripts.filter(isDeferredScript))
+    )
+  );
 
   return checkNotNull(html);
 }
 
-function* cloneNodes(nodes: Iterable<Node>) {
+function isDeferredScript(script: HTMLScriptElement) {
+  return script.hasAttribute("defer");
+}
+
+function not(predicate: (...args: unknown[]) => boolean) {
+  return (...args: unknown[]) => !predicate(...args);
+}
+
+// mutates input directly
+function* removeDeferAttr(scripts: Iterable<HTMLScriptElement>) {
+  for (const script of scripts) {
+    script.defer = false;
+    yield script;
+  }
+}
+
+function* cloneNodes<T extends Node>(nodes: Iterable<T>) {
   for (const node of nodes) {
     yield node.cloneNode(true);
   }
