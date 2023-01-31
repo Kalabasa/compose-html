@@ -4,14 +4,16 @@ import { createContext, runInContext } from "node:vm";
 import { mapAttrsForScript } from "./map_attrs";
 import { rawHTML, RawHTML } from "./raw_html";
 
+export type VM = {
+  runCode: (code: string) => unknown;
+};
+
 export function createVM(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
   context: Record<string, any>
-): {
-  runCode: (code: string) => unknown;
-} {
+): VM {
   const fullContext = createContext({
     require: wrapRequire(require, component.filePath),
     console,

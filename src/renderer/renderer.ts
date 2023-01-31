@@ -140,9 +140,12 @@ export class Renderer {
     return result;
   }
 
-  renderList = async (nodes: Iterable<Node>, context?: Context): Promise<Node[]> => {
+  renderList = async (
+    nodes: Iterable<Node>,
+    context?: Context
+  ): Promise<Node[]> => {
     // todo: parallelize (if safe)
-    const rendered = []; 
+    const rendered = [];
     for await (const item of this.generateRenderedList(nodes, context)) {
       rendered.push(item);
     }

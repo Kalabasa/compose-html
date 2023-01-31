@@ -1,6 +1,6 @@
 import {
   SCRIPT_DELIMITER_CLOSE,
-  SCRIPT_DELIMITER_OPEN,
+  SCRIPT_DELIMITER_OPEN
 } from "compiler/compiler";
 import { Component } from "compiler/component";
 import {
@@ -9,28 +9,22 @@ import {
   isInlineJavaScriptElement,
   isNode,
   parse,
-  stableChildNodesOf,
+  stableChildNodesOf
 } from "dom/dom";
 import path from "node:path";
 import { isIterable } from "util/is_iterable";
 import { createLogger, formatJSValue } from "util/log";
 import { check } from "util/preconditions";
 import { isRawHTML } from "./raw_html";
-import { createVM } from "./vm";
+import { VM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
 export async function renderScripts(
   inOutFragment: DocumentFragment,
   component: Component,
-  attrs: Record<string, any>,
-  children: Node[],
-  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
+  vm: VM
 ): Promise<void> {
-  const vm = createVM(component, attrs, children, {
-    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(component, renderList),
-  });
-
   const scriptCode = component.staticScripts
     .map((el) => el.textContent)
     .join("\n");
@@ -45,21 +39,6 @@ export async function renderScripts(
   for (const node of stableChildNodesOf(inOutFragment)) {
     await renderNode(node, vm.runCode);
   }
-}
-
-function createHTMLLiteralRenderFunc(
-  component: Component,
-  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
-): (index: number) => Promise<Node[]> {
-  return async (index: number) => {
-    logger.debug("render HTML literal", index);
-    logger.group();
-    const result = await renderList(
-      childNodesOf(component.htmlLiterals[index])
-    );
-    logger.groupEnd();
-    return result;
-  };
 }
 
 async function renderNode(

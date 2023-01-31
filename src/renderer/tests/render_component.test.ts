@@ -1,5 +1,5 @@
 import { compile } from "compiler/compiler";
-import { childNodesOf, parse, toHTML } from "dom/dom";
+import { childNodesOf, createTextNode, parse, toHTML } from "dom/dom";
 import { Renderer } from "renderer/renderer";
 import { renderComponent } from "renderer/render_component";
 
@@ -15,7 +15,7 @@ describe("render_component", () => {
       "test.html",
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
     );
-    const output = await renderComponent(component, [], [], renderList);
+    const output = await renderComponent(component, {}, [], renderList);
 
     expect(toHTML(output)).toBe(
       `<div class="header"><h1>Welcome</h1></div><p>Let's go</p>`
@@ -30,7 +30,7 @@ describe("render_component", () => {
     );
     const output = await renderComponent(
       component,
-      [],
+      {},
       [
         ...childNodesOf(
           parse(`<template slot="header">Hello</template>What's up?`)
@@ -50,7 +50,7 @@ describe("render_component", () => {
       "test.html",
       `<p><slot name="content">Uh oh</slot></p>`
     );
-    const output = await renderComponent(component, [], [], renderList);
+    const output = await renderComponent(component, {}, [], renderList);
 
     expect(toHTML(output)).toBe(`<p>Uh oh</p>`);
   });
@@ -75,5 +75,39 @@ describe("render_component", () => {
     expect(toHTML(output)).toBe(
       `<div data-pre="foo" data-post="post">inner</div>`
     );
+  });
+
+  it("reads attribute", async () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `<div>Yeah? <script render="expr">attrs.yeah</script>.</div>`
+    );
+
+    const output = await renderComponent(
+      component,
+      { yeah: "Nah" },
+      [],
+      renderList
+    );
+
+    expect(toHTML(output)).toBe("<div>Yeah? Nah.</div>");
+  });
+
+  it("reads children", async () => {
+    const component = compile(
+      "test",
+      "test.html",
+      `<script render="expr">children[0]</script>`
+    );
+
+    const output = await renderComponent(
+      component,
+      {},
+      [createTextNode("foo")],
+      renderList
+    );
+
+    expect(toHTML(output)).toBe("foo");
   });
 });

@@ -5,6 +5,7 @@ import { createLogger, formatHTMLValue } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
 import { renderScripts } from "./render_scripts";
 import { spreadAttrs } from "./spread_attrs";
+import { createVM, VM } from "./vm";
 
 const DEFAULT_SLOT_NAME = "default";
 
@@ -16,15 +17,23 @@ export async function renderComponent(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  renderList: (nodes: Iterable<Node>) => Promise<Node[]>
+  render: (nodes: Iterable<Node>) => Promise<Node[]>
 ): Promise<Iterable<Node>> {
   logger.debug("component start:", `<${component.name} .. >`);
   logger.group();
 
   const fragment = component.content.cloneNode(true);
 
-  spreadAttrs(fragment, attrs);
-  await renderScripts(fragment, component, attrs, children, renderList);
+  const vm = createVM(component, attrs, children, {
+    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(
+      component,
+      attrs,
+      () => vm,
+      render
+    ),
+  });
+
+  await evaluateFragment(component, fragment, attrs, vm);
 
   // Key: slot name
   // Value is `SLOT_USED` if slot has been used
@@ -40,6 +49,39 @@ export async function renderComponent(
   logger.debug("component done:", `<${component.name} .. />`, "→", fragment);
   logger.trace("\n" + formatHTMLValue(toHTML(fragment)) + "\n");
   return childNodesOf(fragment);
+}
+
+// process attrs
+async function evaluateFragment(
+  component: Component,
+  fragment: DocumentFragment,
+  attrs: Record<string, any>,
+  vm: VM
+) {
+  spreadAttrs(fragment, attrs);
+  await renderScripts(fragment, component, vm);
+
+  // todo: allow slots in HTML literals
+  // i.e. process slots here
+}
+
+function createHTMLLiteralRenderFunc(
+  component: Component,
+  attrs: Record<string, any>,
+  getVM: () => VM,
+  render: (nodes: Iterable<Node>) => Promise<Node[]>
+): (index: number) => Promise<Node[]> {
+  return async (index: number) => {
+    logger.debug("render HTML literal", index);
+    logger.group();
+
+    const fragment = component.htmlLiterals[index].cloneNode(true);
+    await evaluateFragment(component, fragment, attrs, getVM());
+    const result = await render(childNodesOf(fragment));
+
+    logger.groupEnd();
+    return result;
+  };
 }
 
 function processSlots(
