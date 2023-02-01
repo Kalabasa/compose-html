@@ -74,9 +74,9 @@ export class Renderer {
         renderPage(result, {
           page: component.page,
           metadata: Array.from(context.metadata),
-          // reverse array to satisfy dependency loading order
+          // reverse arrays to satisfy dependency loading order
           clientScripts: Array.from(context.clientScripts).reverse(),
-          styles: Array.from(context.styles),
+          styles: Array.from(context.styles).reverse(),
         }),
       ];
     }
