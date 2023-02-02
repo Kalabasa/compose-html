@@ -1,13 +1,13 @@
 import { childNodesOf, isElement } from "dom/dom";
 
-const SPREAD_ATTR_NAME = "...attrs";
+const SPREAD_ATTR_NAME = "{...attrs}";
 
 export function spreadAttrs(
   root: Node | DocumentFragment,
   attrs: Record<string, any>
 ) {
+  if (isElement(root)) spreadAttrsForElement(root, attrs);
   for (const node of childNodesOf(root)) {
-    if (isElement(node)) spreadAttrsForElement(node, attrs);
     spreadAttrs(node, attrs);
   }
 }

@@ -63,7 +63,7 @@ describe("render_component", () => {
           compile(
             "inner",
             "inner.html",
-            `<div data-pre="pre" ...attrs data-post="post">inner</div>`
+            `<div data-pre="pre" {...attrs} data-post="post">inner</div>`
           ),
         ],
       ])

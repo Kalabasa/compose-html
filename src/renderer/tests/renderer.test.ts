@@ -58,7 +58,7 @@ describe("renderer", () => {
   it("renders spread attributes", async () => {
     const renderer = new Renderer(
       new Map([
-        ["inner", compile("inner", "inner.html", "<div ...attrs>inner</div>")],
+        ["inner", compile("inner", "inner.html", "<div {...attrs}>inner</div>")],
       ])
     );
     const output = await renderer.render(
