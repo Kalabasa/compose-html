@@ -111,7 +111,7 @@ export class Renderer {
         component,
         mapAttrs(node.attributes),
         children,
-        this.renderList
+        (nodes) => this.renderList(nodes, context)
       );
 
       if (context) {
