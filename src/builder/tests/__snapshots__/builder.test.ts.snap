@@ -6,13 +6,13 @@ exports[`builder builds project1 1`] = `
 <head>
   <title>About Project 1</title>
   <style>
-    * {
-      color: blue;
+    .button {
+      border-radius: 11px;
     }
   </style>
   <style>
-    .button {
-      border-radius: 11px;
+    * {
+      color: blue;
     }
   </style>
   <script>
@@ -29,18 +29,29 @@ exports[`builder builds project1 1`] = `
 </body>
 </html>
 
+./dont-process.html:
+<html>
+  <head>
+    <title>Don't process me</title>
+  </head>
+  <body>
+    Hello, world! Goodbye! {destroyWorld()}
+  </body>
+</html>
+
+
 ./index.html:
 <html>
 <head>
   <title>Project 1</title>
   <style>
-    * {
-      color: red;
+    .button {
+      border-radius: 11px;
     }
   </style>
   <style>
-    .button {
-      border-radius: 11px;
+    * {
+      color: red;
     }
   </style>
   <script>

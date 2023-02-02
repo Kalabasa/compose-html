@@ -1,32 +1,30 @@
-import { check } from "util/preconditions";
+import { childNodesOf, isElement } from "dom/dom";
 
 const SPREAD_ATTR_NAME = "...attrs";
 
 export function spreadAttrs(
-  fragment: DocumentFragment,
+  root: Node | DocumentFragment,
   attrs: Record<string, any>
 ) {
-  const root = fragment.firstElementChild;
-  if (!root?.hasAttribute(SPREAD_ATTR_NAME)) return;
+  for (const node of childNodesOf(root)) {
+    if (isElement(node)) spreadAttrsForElement(node, attrs);
+    spreadAttrs(node, attrs);
+  }
+}
 
-  // it is feasible to spread on any element, but for simplicity, support only root
-  check(
-    fragment.childElementCount === 1,
-    "Spread attrs only allowed on a single root element."
-  );
-
-  for (const [name, value] of Array.from(root.attributes).map((attr) => [
+function spreadAttrsForElement(element: Element, attrs: Record<string, any>) {
+  for (const [name, value] of Array.from(element.attributes).map((attr) => [
     attr.name,
     attr.value,
   ])) {
     if (name === SPREAD_ATTR_NAME) {
-      root.removeAttribute(SPREAD_ATTR_NAME);
+      element.removeAttribute(SPREAD_ATTR_NAME);
       for (const [inName, inValue] of Object.entries(attrs)) {
-        root.setAttribute(inName, inValue);
+        element.setAttribute(inName, inValue);
       }
     } else {
       // re-set to keep order
-      root.setAttribute(name, value);
+      element.setAttribute(name, value);
     }
   }
 }
