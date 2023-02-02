@@ -126,6 +126,7 @@ async function* unwrapResults(
   results: Promise<Iterable<any>>
 ): AsyncGenerator<string | Node> {
   for (let result of await results) {
+    if (result == null) continue;
     if (typeof result === "string" || result instanceof String) {
       yield String(result);
     } else if (isIterable(result)) {
