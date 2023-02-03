@@ -80,7 +80,8 @@ export async function build(options: BuildOptions = {}) {
     } else {
       check(
         !componentMap.has(component.name),
-        `Component name must be unique. Found duplicate: ${component.name}`
+        `Component name must be unique. Found duplicate: ${component.name}` +
+          `\n  at ${filePath}`
       );
       componentMap.set(component.name, component);
     }
