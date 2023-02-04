@@ -1,8 +1,7 @@
 import { compile, compileFile } from "compiler/compiler";
 import { Component } from "compiler/component";
-import { createTextNode, parse, toHTML } from "dom/dom";
+import { parse, toHTML } from "dom/dom";
 import path from "node:path";
-import { Renderer } from "renderer/renderer";
 import { renderScripts } from "renderer/render_scripts";
 import { createVM, VM } from "renderer/vm";
 

@@ -3,6 +3,7 @@ import { childNodesOf, isElement, isTemplateElement, toHTML } from "dom/dom";
 import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
+import { nullRenderContext, RenderContext } from "./renderer";
 import { renderScripts } from "./render_scripts";
 import { spreadAttrs } from "./spread_attrs";
 import { createVM, VM } from "./vm";
@@ -17,21 +18,28 @@ export async function renderComponent(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  render: (nodes: Iterable<Node>) => Promise<Node[]>
+  render: (nodes: Iterable<Node>) => Promise<Node[]>,
+  renderContext: RenderContext = nullRenderContext // fixme: code smell: unrelated param passthrough
 ): Promise<Iterable<Node>> {
   logger.debug("component start:", `<${component.name} .. >`);
   logger.group();
 
   const fragment = component.content.cloneNode(true);
 
-  const vm = createVM(component, attrs, children, {
-    __renderHTMLLiteral__: createHTMLLiteralRenderFunc(
-      component,
-      attrs,
-      () => vm,
-      render
-    ),
-  });
+  const vm = createVM(
+    component,
+    attrs,
+    children,
+    {
+      __renderHTMLLiteral__: createHTMLLiteralRenderFunc(
+        component,
+        attrs,
+        () => vm,
+        render
+      ),
+    },
+    renderContext
+  );
 
   await evaluateFragment(component, fragment, attrs, vm);
 

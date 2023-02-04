@@ -8,21 +8,25 @@ import { renderPage } from "./render_page";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
-type RendererOptions = {};
+export type RenderContext = {
+  rootDir: string;
+};
 
 type Context = {
   metadata: Set<Node>;
   clientScripts: Set<HTMLScriptElement>;
   styles: Set<HTMLStyleElement>;
+} & RenderContext;
+
+// fixme: smells like weird undefined behavior
+export const nullRenderContext: RenderContext = {
+  rootDir: "",
 };
 
 export class Renderer {
   private readonly components: Map<string, Component>;
 
-  constructor(
-    components: Map<string, Component> = new Map(),
-    options: RendererOptions = {}
-  ) {
+  constructor(components: Map<string, Component> = new Map()) {
     this.components = new Map(
       [...components.entries()].map(([tagName, component]) => [
         tagName.toLowerCase(),
@@ -31,7 +35,10 @@ export class Renderer {
     );
   }
 
-  async render(component: Component): Promise<Node[]> {
+  async render(
+    component: Component,
+    renderContext: RenderContext = nullRenderContext
+  ): Promise<Node[]> {
     logger.debug(
       "====== render start ======",
       "\nroot component:",
@@ -43,6 +50,7 @@ export class Renderer {
 
     if (component.page) {
       context = {
+        ...renderContext,
         metadata: new Set(component.metadata),
         clientScripts: new Set(component.clientScripts),
         styles: new Set(component.styles),
@@ -50,7 +58,7 @@ export class Renderer {
     }
 
     let result = await this.renderList(
-      await renderComponent(component, [], [], this.renderList),
+      await renderComponent(component, [], [], this.renderList, renderContext),
       context
     );
 
@@ -111,7 +119,8 @@ export class Renderer {
         component,
         mapAttrs(node.attributes),
         children,
-        (nodes) => this.renderList(nodes, context)
+        (nodes) => this.renderList(nodes, context),
+        context ?? nullRenderContext
       );
 
       if (context) {

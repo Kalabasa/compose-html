@@ -3,6 +3,7 @@ import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { mapAttrsForScript } from "./map_attrs";
 import { rawHTML, RawHTML } from "./raw_html";
+import { nullRenderContext, RenderContext } from "./renderer";
 
 export type VM = {
   runCode: (code: string) => unknown;
@@ -12,15 +13,17 @@ export function createVM(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
-  context: Record<string, any>
+  jsContext: Record<string, any>,
+  context: RenderContext = nullRenderContext
 ): VM {
   const fullContext = createContext({
     require: wrapRequire(require, component.filePath),
     console,
+    url: makeURLFunc(context, component.filePath),
     html: htmlTag,
     attrs: mapAttrsForScript(attrs),
     children, // todo: make immutable when exposed
-    ...context,
+    ...jsContext,
   });
 
   const runCode = (code: string) =>
@@ -53,4 +56,19 @@ function wrapRequire(require: NodeRequire, filePath: string): NodeRequire {
 
   const newRequire = Object.assign(wrappedRequire, require);
   return newRequire;
+}
+
+// todo: unit test this
+function makeURLFunc(
+  context: RenderContext,
+  componentFilePath: string
+): (urlPath: string) => string {
+  return (localUrlPath) => {
+    const filePath = path.resolve(
+      path.dirname(componentFilePath),
+      localUrlPath
+    );
+    const siteUrlPath = path.relative(context.rootDir, filePath);
+    return path.join("/", siteUrlPath);
+  };
 }

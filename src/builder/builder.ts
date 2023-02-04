@@ -119,10 +119,13 @@ export async function build(options: BuildOptions = {}) {
     nodes: Node[];
   }> = [];
 
+  const absRootDir = path.resolve(rootDir);
+
   const cwd = process.cwd();
   try {
     for (const component of pageComponents) {
       const pagePath = path.relative(rootDir, component.filePath);
+      const srcPath = component.filePath;
       const outPath =
         component.name === "index"
           ? path.resolve(outputDir, pagePath)
@@ -138,10 +141,12 @@ export async function build(options: BuildOptions = {}) {
       fs.mkdirSync(outDir, { recursive: true });
       process.chdir(outDir);
 
-      const nodes = await renderer.render(component);
+      const nodes = await renderer.render(component, {
+        rootDir: absRootDir,
+      });
 
       pages.push({
-        srcPath: component.filePath,
+        srcPath,
         pagePath,
         outPath,
         nodes,
