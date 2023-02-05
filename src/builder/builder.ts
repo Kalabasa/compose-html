@@ -121,39 +121,30 @@ export async function build(options: BuildOptions = {}) {
 
   const absRootDir = path.resolve(rootDir);
 
-  const cwd = process.cwd();
-  try {
-    for (const component of pageComponents) {
-      const pagePath = path.relative(rootDir, component.filePath);
-      const srcPath = component.filePath;
-      const outPath =
-        component.name === "index"
-          ? path.resolve(outputDir, pagePath)
-          : path.resolve(
-              outputDir,
-              path.dirname(pagePath),
-              component.name,
-              "index.html"
-            );
+  for (const component of pageComponents) {
+    const pagePath = path.relative(rootDir, component.filePath);
+    const srcPath = component.filePath;
+    const outPath =
+      component.name === "index"
+        ? path.resolve(outputDir, pagePath)
+        : path.resolve(
+            outputDir,
+            path.dirname(pagePath),
+            component.name,
+            "index.html"
+          );
 
-      // run scripts relative to page output dir
-      const outDir = path.dirname(outPath);
-      fs.mkdirSync(outDir, { recursive: true });
-      process.chdir(outDir);
+    const nodes = await renderer.render(component, {
+      rootDir: absRootDir,
+      outputDir,
+    });
 
-      const nodes = await renderer.render(component, {
-        rootDir: absRootDir,
-      });
-
-      pages.push({
-        srcPath,
-        pagePath,
-        outPath,
-        nodes,
-      });
-    }
-  } finally {
-    process.chdir(cwd);
+    pages.push({
+      srcPath,
+      pagePath,
+      outPath,
+      nodes,
+    });
   }
 
   const scriptBundles = extractScriptBundles(pages);

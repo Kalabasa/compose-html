@@ -1,7 +1,7 @@
 import { Component } from "compiler/component";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
-import { nullRenderContext, RenderContext } from "./renderer";
+import { RenderContext } from "./renderer";
 
 export type VM = {
   runCode: (code: string) => unknown;
@@ -9,18 +9,20 @@ export type VM = {
 
 export function createVM(
   component: Component,
-  context: RenderContext = nullRenderContext,
+  context: RenderContext,
   jsContext: Record<string, any>
 ): VM {
-  const fullContext = createContext({
+  const fullJsContext = createContext({
     require: wrapRequire(require, component.filePath),
     console,
     url: makeURLFunc(context, component.filePath),
+    __rootDir: context.rootDir,
+    __outputDir: context.outputDir,
     ...jsContext,
   });
 
   const runCode = (code: string) =>
-    runInContext(code, fullContext, { filename: component.filePath });
+    runInContext(code, fullJsContext, { filename: component.filePath });
 
   return { runCode };
 }
