@@ -26,9 +26,6 @@ import { queryPageSkeleton } from "util/query_page_skeleton";
 export const SCRIPT_DELIMITER_OPEN = "{";
 export const SCRIPT_DELIMITER_CLOSE = "}";
 
-const HTML_DELIMITER_OPEN = "(<";
-const HTML_DELIMITER_CLOSE = ">)";
-
 const DYNAMIC_ATTR_PREFIX = ":";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
@@ -39,7 +36,6 @@ type Context = {
   staticScripts: HTMLScriptElement[];
   clientScripts: HTMLScriptElement[];
   styles: HTMLStyleElement[];
-  htmlLiterals: DocumentFragment[];
 };
 
 export function compileFile(filePath: string): Component {
@@ -69,13 +65,6 @@ export function compile(
 
   const processed = processNode(content);
 
-  processed.htmlLiterals.forEach((htmlLiteral, index) => {
-    logger.debug("post-process HTML literal", index);
-    logger.group();
-    processNode(htmlLiteral, processed);
-    logger.groupEnd();
-  });
-
   if (processed.contentRoot === content) {
     trim(content);
   } else {
@@ -93,7 +82,6 @@ export function compile(
     staticScripts: processed.staticScripts,
     clientScripts: processed.clientScripts,
     styles: processed.styles,
-    htmlLiterals: processed.htmlLiterals,
   };
 
   logger.debug("");
@@ -111,8 +99,6 @@ export function compile(
     component.clientScripts,
     "\nstyles:",
     component.styles,
-    "\nhtml literals:",
-    component.htmlLiterals,
     "\n"
   );
   return component;
@@ -153,7 +139,6 @@ function processNode(
     staticScripts: [],
     clientScripts: [],
     styles: [],
-    htmlLiterals: [],
   }
 ) {
   logger.debug("process node:", node);
@@ -332,7 +317,6 @@ function processElementAttrs(element: Element) {
 }
 
 function processRenderScript(script: HTMLScriptElement, context: Context) {
-  processScriptHtmlLiterals(script, context);
   processScriptRenderAttribute(script);
 }
 
@@ -355,59 +339,6 @@ function processScriptRenderAttribute(script: HTMLScriptElement) {
     "auto-detected render type as",
     `render="${script.getAttribute("render")}"`
   );
-}
-
-function processScriptHtmlLiterals(
-  script: HTMLScriptElement,
-  context: Context
-): boolean {
-  const builder = new NodeListBuilder();
-  const textProcessor = new TextProcessor(script);
-  const delimiters = findDelimiters(
-    HTML_DELIMITER_OPEN,
-    HTML_DELIMITER_CLOSE,
-    script
-  );
-
-  let openIndex = 0;
-
-  for (const delimiter of delimiters) {
-    if (delimiter.levelInside === 1) {
-      if (delimiter.type === HTML_DELIMITER_OPEN) {
-        openIndex = delimiter.index;
-      } else if (delimiter.type === HTML_DELIMITER_CLOSE) {
-        builder.append(...textProcessor.readUntil(openIndex));
-        // offset by one because the delimiter includes part of content '<' and '>'
-        textProcessor.readUntil(openIndex + HTML_DELIMITER_OPEN.length - 1);
-        const html = stringify(textProcessor.readUntil(delimiter.index + 1));
-        textProcessor.readUntil(delimiter.index + HTML_DELIMITER_CLOSE.length);
-
-        const htmlLiteralExpr = addHtmlLiteral(html, context);
-
-        logger.debug(`converted HTML literal (${html})`, "→", htmlLiteralExpr);
-
-        builder.append(htmlLiteralExpr);
-      }
-    }
-  }
-
-  builder.append(...textProcessor.readUntil(Infinity));
-
-  const newContent = builder.collect();
-  check(newContent.length === 1);
-
-  const willChange = script.textContent !== newContent[0].textContent;
-  if (willChange) {
-    script.innerHTML = newContent[0].textContent!;
-    return true;
-  }
-
-  return false;
-}
-
-function addHtmlLiteral(html: string, context: Context): string {
-  const index = context.htmlLiterals.push(parse(html)) - 1;
-  return ` (await __renderHTMLLiteral__(${index})) `;
 }
 
 function stringify(array: (string | Node)[]) {

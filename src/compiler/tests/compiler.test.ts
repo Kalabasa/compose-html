@@ -111,51 +111,6 @@ describe("compiler", () => {
     );
   });
 
-  it("converts HTML literals inside a render script", () => {
-    const component = compile(
-      "test",
-      "test.html",
-      `12:00 <script render>canEdit ? (<button>Edit</button>) : ""</script>`
-    );
-
-    expect(component.htmlLiterals).toHaveLength(1);
-    expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
-    expect(toHTML(component.content)).toBe(
-      `12:00 <script render="expr">canEdit ?  (await __renderHTMLLiteral__(0))  : ""</script>`
-    );
-  });
-
-  it("converts HTML literals inside a render shorthand", () => {
-    const component = compile(
-      "test",
-      "test.html",
-      `12:00 {canEdit ? (<button>Edit</button>) : ""}`
-    );
-
-    expect(component.htmlLiterals).toHaveLength(1);
-    expect(toHTML(component.htmlLiterals[0])).toBe("<button>Edit</button>");
-    expect(toHTML(component.content)).toBe(
-      `12:00 <script render="expr">canEdit ?  (await __renderHTMLLiteral__(0))  : ""</script>`
-    );
-  });
-
-  it("converts nested shorthands and HTML literals", () => {
-    const component = compile(
-      "test",
-      "test.html",
-      `{"Here " + (<b>we {"go " + (<i>again!</i>)}</b>)}`
-    );
-
-    expect(component.htmlLiterals).toHaveLength(2);
-    expect(toHTML(component.htmlLiterals[0])).toBe(
-      `<b>we <script render="expr">"go " +  (await __renderHTMLLiteral__(1)) </script></b>`
-    );
-    expect(toHTML(component.htmlLiterals[1])).toBe(`<i>again!</i>`);
-    expect(toHTML(component.content)).toBe(
-      `<script render="expr">"Here " +  (await __renderHTMLLiteral__(0)) </script>`
-    );
-  });
-
   it("separates metadata from the content", () => {
     const component = compile("test", "test.html", `<title>foo</title><link rel="stylesheet" href="foo.css"><script src="foo.js"></script>bar`);
 

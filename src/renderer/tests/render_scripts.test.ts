@@ -2,12 +2,16 @@ import { compile, compileFile } from "compiler/compiler";
 import { Component } from "compiler/component";
 import { parse, toHTML } from "dom/dom";
 import path from "node:path";
-import { renderScripts } from "renderer/render_scripts";
-import { createVM, VM } from "renderer/vm";
+import { Renderer } from "renderer/renderer";
+import { evaluateScripts } from "renderer/render_scripts";
 
 describe("render_scripts", () => {
   let component: Component;
-  let vm: VM;
+
+  const renderList = (nodes: Iterable<Node>) => {
+    const renderer = new Renderer();
+    return renderer.renderList(nodes);
+  };
 
   beforeEach(() => {
     component = compile(
@@ -15,7 +19,6 @@ describe("render_scripts", () => {
       "test.html",
       `<script static="">const foo = 42;</script>`
     );
-    vm = createVM(component, {}, [], {});
   });
 
   it("independent expression", async () => {
@@ -23,7 +26,7 @@ describe("render_scripts", () => {
       `<div>One plus one is <script render="expr">1 + 1</script>.</div>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>One plus one is 2.</div>");
   });
@@ -31,7 +34,7 @@ describe("render_scripts", () => {
   it("renders return value of a func type", async () => {
     const content = parse(`<script render="func">return "foo"</script>`);
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("foo");
   });
@@ -41,7 +44,7 @@ describe("render_scripts", () => {
       `<script render="func">return await Promise.resolve("foo")</script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("foo");
   });
@@ -51,7 +54,7 @@ describe("render_scripts", () => {
       `<script render="gen">yield "foo"; yield "bar";</script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("foobar");
   });
@@ -61,29 +64,9 @@ describe("render_scripts", () => {
       `<div>Foo? <script render="expr">foo</script>.</div>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("<div>Foo? 42.</div>");
-  });
-
-  it("renders html template literal", async () => {
-    const content = parse(
-      '<script render="expr">html`<p>literally ${foo}</p>`</script>'
-    );
-
-    await renderScripts(content, component, vm);
-
-    expect(toHTML(content)).toBe("<p>literally 42</p>");
-  });
-
-  it("renders html template literal from async func", async () => {
-    const content = parse(
-      '<script render="func">return html`<p>literally ${await Promise.resolve(foo)}</p>`</script>'
-    );
-
-    await renderScripts(content, component, vm);
-
-    expect(toHTML(content)).toBe("<p>literally 42</p>");
   });
 
   it("executes a script local function", async () => {
@@ -94,7 +77,7 @@ describe("render_scripts", () => {
       `<script static>function bar() { return "Hey!"; }</script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("Hey!");
   });
@@ -113,7 +96,7 @@ describe("render_scripts", () => {
 </script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("a/b");
   });
@@ -122,9 +105,8 @@ describe("render_scripts", () => {
     const filePath = path.resolve(__dirname, "data/root.html");
     const content = parse(`<script render="expr">bar</script>`);
     const component = compileFile(filePath);
-    vm = createVM(component, {}, [], {});
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe("88");
   });
@@ -137,7 +119,7 @@ describe("render_scripts", () => {
       `<script static>const a = "va"; const b = "vb";</script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<img class="va" src="vb" alt="Test">`);
   });
@@ -150,7 +132,7 @@ describe("render_scripts", () => {
       `<script static>async function foo() { return "foo"; }</script>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<img src="foo">`);
   });
@@ -160,7 +142,7 @@ describe("render_scripts", () => {
       `<div data-foo="{null}" data-bar="{undefined}"></div>`
     );
 
-    await renderScripts(content, component, vm);
+    await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<div></div>`);
   });

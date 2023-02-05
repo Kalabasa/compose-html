@@ -4,9 +4,7 @@ import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
 import { nullRenderContext, RenderContext } from "./renderer";
-import { renderScripts } from "./render_scripts";
-import { spreadAttrs } from "./spread_attrs";
-import { createVM, VM } from "./vm";
+import { evaluateScripts } from "./render_scripts";
 
 const DEFAULT_SLOT_NAME = "default";
 
@@ -18,6 +16,7 @@ export async function renderComponent(
   component: Component,
   attrs: Record<string, any>,
   children: Node[],
+  // todo: injection
   render: (nodes: Iterable<Node>) => Promise<Node[]>,
   renderContext: RenderContext = nullRenderContext // fixme: code smell: unrelated param passthrough
 ): Promise<Iterable<Node>> {
@@ -26,22 +25,14 @@ export async function renderComponent(
 
   const fragment = component.content.cloneNode(true);
 
-  const vm = createVM(
+  await evaluateScripts(
+    fragment,
     component,
     attrs,
     children,
-    {
-      __renderHTMLLiteral__: createHTMLLiteralRenderFunc(
-        component,
-        attrs,
-        () => vm,
-        render
-      ),
-    },
+    render,
     renderContext
   );
-
-  await evaluateFragment(component, fragment, attrs, vm);
 
   // Key: slot name
   // Value is `SLOT_USED` if slot has been used
@@ -57,39 +48,6 @@ export async function renderComponent(
   logger.debug("component done:", `<${component.name} .. />`, "→", fragment);
   logger.trace("\n" + formatHTMLValue(toHTML(fragment)) + "\n");
   return childNodesOf(fragment);
-}
-
-// process attrs
-async function evaluateFragment(
-  component: Component,
-  fragment: DocumentFragment,
-  attrs: Record<string, any>,
-  vm: VM
-) {
-  spreadAttrs(fragment, attrs);
-  await renderScripts(fragment, component, vm);
-
-  // todo: allow slots in HTML literals
-  // i.e. process slots here
-}
-
-function createHTMLLiteralRenderFunc(
-  component: Component,
-  attrs: Record<string, any>,
-  getVM: () => VM,
-  render: (nodes: Iterable<Node>) => Promise<Node[]>
-): (index: number) => Promise<Node[]> {
-  return async (index: number) => {
-    logger.debug("render HTML literal", index);
-    logger.group();
-
-    const fragment = component.htmlLiterals[index].cloneNode(true);
-    await evaluateFragment(component, fragment, attrs, getVM());
-    const result = await render(childNodesOf(fragment));
-
-    logger.groupEnd();
-    return result;
-  };
 }
 
 function processSlots(

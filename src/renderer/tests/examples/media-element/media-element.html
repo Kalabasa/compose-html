@@ -1,7 +1,7 @@
 <script render>
   isImg(attrs.src)
-    ? (<img class="media-element" src="{attrs.src}" />)
-    : (<video class="media-element" src="{attrs.src}"></video>)
+    ? html`<img class="media-element" src="${attrs.src}" />`
+    : html`<video class="media-element" src="${attrs.src}"></video>`
 </script>
 
 <script static>

@@ -1,6 +1,6 @@
 import {
   SCRIPT_DELIMITER_CLOSE,
-  SCRIPT_DELIMITER_OPEN
+  SCRIPT_DELIMITER_OPEN,
 } from "compiler/compiler";
 import { Component } from "compiler/component";
 import {
@@ -9,22 +9,40 @@ import {
   isInlineJavaScriptElement,
   isNode,
   parse,
-  stableChildNodesOf
+  stableChildNodesOf,
 } from "dom/dom";
 import path from "node:path";
 import { isIterable } from "util/is_iterable";
 import { createLogger, formatJSValue } from "util/log";
 import { check } from "util/preconditions";
-import { isRawHTML } from "./raw_html";
-import { VM } from "./vm";
+import { mapAttrsForScript } from "./map_attrs";
+import { isRawHTML, rawHTMLTag } from "./raw_html";
+import { nullRenderContext, RenderContext } from "./renderer";
+import { spreadAttrs } from "./spread_attrs";
+import { createVM, VM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
-export async function renderScripts(
+export async function evaluateScripts(
   inOutFragment: DocumentFragment,
   component: Component,
-  vm: VM
-): Promise<void> {
+  attrs: Record<string, any>,
+  children: Node[],
+  // todo: injection
+  render: (nodes: Iterable<Node>) => Promise<Node[]>,
+  context: RenderContext = nullRenderContext
+) {
+  const vm = createVM(component, context, {
+    html: createHTMLTag(attrs, () => vm, render),
+    raw: rawHTMLTag,
+    attrs: mapAttrsForScript(attrs),
+    children, // todo: make immutable when exposed
+  });
+  runStaticScripts(component, vm);
+  await evaluateFragment(inOutFragment, attrs, vm);
+}
+
+function runStaticScripts(component: Component, vm: VM) {
   const scriptCode = component.staticScripts
     .map((el) => el.textContent)
     .join("\n");
@@ -35,7 +53,21 @@ export async function renderScripts(
     );
     vm.runCode(scriptCode);
   }
+}
 
+async function evaluateFragment(
+  inOutFragment: DocumentFragment,
+  attrs: Record<string, any>,
+  vm: VM
+) {
+  spreadAttrs(inOutFragment, attrs);
+  await renderScripts(inOutFragment, vm);
+}
+
+async function renderScripts(
+  inOutFragment: DocumentFragment,
+  vm: VM
+): Promise<void> {
   for (const node of stableChildNodesOf(inOutFragment)) {
     await renderNode(node, vm.runCode);
   }
@@ -120,6 +152,25 @@ async function renderScriptElement(
     if (!isNode(item)) continue;
     await renderNode(item, runCode);
   }
+}
+
+function createHTMLTag(
+  attrs: Record<string, any>,
+  getVM: () => VM,
+  render: (nodes: Iterable<Node>) => Promise<Node[]>
+): (segments: string[], ...expressions: any[]) => Promise<Node[]> {
+  return async (segments: string[], ...expressions: any[]) => {
+    logger.debug("render HTML literal");
+    logger.group();
+
+    const raw = rawHTMLTag(segments, ...expressions);
+    const fragment = parse(raw.html);
+    await evaluateFragment(fragment, attrs, getVM());
+    const result = await render(childNodesOf(fragment));
+
+    logger.groupEnd();
+    return result;
+  };
 }
 
 async function* unwrapResults(
