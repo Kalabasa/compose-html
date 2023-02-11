@@ -201,7 +201,7 @@ function processShorthands(node: Node, context: Context): boolean {
         scriptElement.appendChild(createTextNode(code));
         logger.debug(`convert shorthand {${code}}`);
         logger.group();
-        processRenderScript(scriptElement, context);
+        processRenderScript(scriptElement);
         logger.debug("converted shorthand →", scriptElement);
         logger.groupEnd();
 
@@ -250,7 +250,7 @@ function processElement(element: Element, context: Context): boolean {
       }
 
       if (isRender) {
-        processRenderScript(element as HTMLScriptElement, context);
+        processRenderScript(element as HTMLScriptElement);
       } else if (isStatic) {
         element.removeAttribute("static");
         context.staticScripts.push(element as HTMLScriptElement);
@@ -316,7 +316,7 @@ function processElementAttrs(element: Element) {
   }
 }
 
-function processRenderScript(script: HTMLScriptElement, context: Context) {
+function processRenderScript(script: HTMLScriptElement) {
   processScriptRenderAttribute(script);
 }
 

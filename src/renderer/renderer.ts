@@ -1,4 +1,5 @@
 import { Component } from "compiler/component";
+import { DZ_PREFIX } from "dom/desensitize";
 import { appendChild, childNodesOf, isElement, toHTML } from "dom/dom";
 import path from "node:path";
 import { createLogger, formatHTMLValue } from "util/log";
@@ -140,6 +141,14 @@ export class Renderer {
       }
 
       result = await this.renderList(componentOutput, context);
+    } else if (
+      context &&
+      isElement(node) &&
+      node.tagName.toLowerCase() === `${DZ_PREFIX}head`
+    ) {
+      // todo: if <head> is processed on render, then metadata compilation step is redundant
+      children.forEach((child) => context.metadata.add(child));
+      result = [];
     } else {
       const clone = node.cloneNode(false);
       for (const child of children) {
