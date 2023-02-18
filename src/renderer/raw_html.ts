@@ -1,3 +1,6 @@
+import { isElement, isText } from "dom/dom";
+import { isIterable } from "util/is_iterable";
+
 export const rawHTMLSymbol = Symbol("rawHTML");
 
 export type RawHTML = {
@@ -13,16 +16,40 @@ export function rawHTML(html: string): RawHTML {
   return { [rawHTMLSymbol]: true, html: html };
 }
 
-export function rawHTMLTag(segments: string[], ...expressions: any[]): RawHTML {
+export async function rawHTMLTag(
+  segments: string[],
+  ...expressions: any[]
+): Promise<RawHTML> {
   const parts: string[] = [];
-
-  segments.forEach((segment, i) => {
+  
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
     if (i + 1 === segments.length) {
       parts.push(segment);
     } else {
-      parts.push(segment, String(expressions[i]));
+      parts.push(segment, await stringifyHTMLTagExpression(expressions[i]));
     }
-  });
-
+  }
+  
   return rawHTML(parts.join(""));
+}
+
+async function stringifyHTMLTagExpression(expression: any): Promise<string> {
+  if (expression != null) expression = await expression;
+  if (expression == null) return "";
+  if (typeof expression === "string" || expression instanceof String) {
+    return String(expression);
+  } else if (isElement(expression)) {
+    return expression.outerHTML;
+  } else if (isText(expression)) {
+    return expression.textContent ?? "";
+  } else if (isIterable(expression)) {
+    let joined = "";
+    for (const item of expression) {
+      joined += await stringifyHTMLTagExpression(item);
+    }
+    return joined;
+  } else {
+    return String(expression);
+  }
 }

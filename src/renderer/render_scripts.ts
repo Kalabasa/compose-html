@@ -163,7 +163,7 @@ function createHTMLTag(
     logger.debug("render HTML literal");
     logger.group();
 
-    const raw = rawHTMLTag(segments, ...expressions);
+    const raw = await rawHTMLTag(segments, ...expressions);
     const fragment = parse(raw.html);
     await evaluateFragment(fragment, attrs, getVM());
     const result = await render(childNodesOf(fragment));
@@ -173,6 +173,7 @@ function createHTMLTag(
   };
 }
 
+// unwraps the result of `wrapCode()`
 async function* unwrapResults(
   results: Promise<Iterable<any>>
 ): AsyncGenerator<string | Node> {

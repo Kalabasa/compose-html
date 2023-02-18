@@ -146,4 +146,19 @@ describe("render_scripts", () => {
 
     expect(toHTML(content)).toBe(`<div></div>`);
   });
+
+  it("renders nested HTML tags", async () => {
+    const content = parse(
+      '<script render="expr">html`<div>${renderInner()}</div>`</script>'
+    );
+    const component = compile(
+      "test",
+      "test.html",
+      "<script static>function renderInner() { return html`<span>foo</span>`; }</script>"
+    );
+
+    await evaluateScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe(`<div><span>foo</span></div>`);
+  });
 });

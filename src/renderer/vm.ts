@@ -15,6 +15,7 @@ export function createVM(
   const fullJsContext = createContext({
     require: wrapRequire(require, component.filePath),
     console,
+    process: { env: process.env },
     url: makeURLFunc(context, component.filePath),
     __rootDir: context.rootDir,
     __outputDir: context.outputDir,
