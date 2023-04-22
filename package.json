@@ -35,6 +35,7 @@
   },
   "scripts": {
     "prepare": "npm run build",
+    "prepack": "npm run build",
     "build": "npm run build-js && npm run build-bin",
     "build-js": "tsc",
     "build-bin": "node build-bin.js",
