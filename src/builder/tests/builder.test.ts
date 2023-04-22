@@ -28,8 +28,8 @@ describe("builder", () => {
   it.each(projects)("builds %s via cli", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
     await inDir(topDir, async () => {
-      run("yarn install");
-      run("yarn build");
+      run("npm install");
+      run("npm run build");
       await withTempDir((outputDir) => {
         run(
           "node dist/bin/main.js" +
@@ -45,8 +45,8 @@ describe("builder", () => {
   it.each(projects)("builds %s via config file", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
     await inDir(topDir, async () => {
-      run("yarn install");
-      run("yarn build");
+      run("npm install");
+      run("npm run build");
       await withTempDir(
         async (outputDir) =>
           await withTempFile(
