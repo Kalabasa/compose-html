@@ -1,6 +1,6 @@
 {
   "name": "compose-html",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/cjs/main.js",
   "types": "dist/types/main.d.ts",
   "bin": {
@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "acorn-loose": "^8.3.0",
+    "cli-highlight": "^2.1.11",
     "commander": "^9.4.1",
     "html-tags": "^3.2.0",
     "js-beautify": "^1.14.7",
@@ -23,7 +24,6 @@
     "@types/js-beautify": "^1.13.3",
     "@types/jsdom": "^20.0.1",
     "@types/node": "^18.11.10",
-    "cli-highlight": "^2.1.11",
     "esbuild": "^0.16.9",
     "glob": "^8.0.3",
     "jest": "^29.3.1",
