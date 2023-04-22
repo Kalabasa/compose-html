@@ -67,6 +67,9 @@ exports[`builder builds project1 1`] = `
 
   </div>
   <div>Hello, world!</div>
+  <ol>
+    <li class="list-item">1</li>
+  </ol>
   <nav>
     <a href="about.html">About</a>
   </nav>
@@ -141,6 +144,9 @@ exports[`builder builds project1 via cli 1`] = `
 
   </div>
   <div>Hello, world!</div>
+  <ol>
+    <li class="list-item">1</li>
+  </ol>
   <nav>
     <a href="about.html">About</a>
   </nav>
@@ -215,6 +221,9 @@ exports[`builder builds project1 via config file 1`] = `
 
   </div>
   <div>Hello, world!</div>
+  <ol>
+    <li class="list-item">1</li>
+  </ol>
   <nav>
     <a href="about.html">About</a>
   </nav>
