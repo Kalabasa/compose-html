@@ -13,24 +13,31 @@ describe("builder", () => {
   const projects = ["project1"];
   const exclude = ["**/dont-process.html"];
 
+  beforeAll(() =>
+    inDir(topDir, () => {
+      run("npm install");
+      run("npm run build");
+    })
+  );
+
   it.each(projects)("builds %s", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
-    await withTempDir(async (outputDir) => {
-      await build({
-        inputDir,
-        outputDir,
-        exclude,
-      });
-      expect(filesToString(outputDir)).toMatchSnapshot();
-    });
+    await inDir(topDir, () =>
+      withTempDir(async (outputDir) => {
+        await build({
+          inputDir,
+          outputDir,
+          exclude,
+        });
+        expect(filesToString(outputDir)).toMatchSnapshot();
+      })
+    );
   });
 
   it.each(projects)("builds %s via cli", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
-    await inDir(topDir, async () => {
-      run("npm install");
-      run("npm run build");
-      await withTempDir((outputDir) => {
+    await inDir(topDir, () =>
+      withTempDir((outputDir) => {
         run(
           "node dist/bin/main.js" +
             ` -i ${relative(process.cwd(), inputDir)}` +
@@ -38,31 +45,50 @@ describe("builder", () => {
             ` --exclude ${exclude.map((p) => `'${p}' `)}`
         );
         expect(filesToString(outputDir)).toMatchSnapshot();
-      });
-    });
+      })
+    );
   });
 
   it.each(projects)("builds %s via config file", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
-    await inDir(topDir, async () => {
-      run("npm install");
-      run("npm run build");
-      await withTempDir(
-        async (outputDir) =>
-          await withTempFile(
+    await inDir(topDir, () =>
+      withTempDir((outputDir) =>
+        withTempFile(
+          JSON.stringify({
+            inputDir,
+            outputDir,
+            exclude,
+          }),
+          (configFile) => {
+            run(`node dist/bin/main.js --config ${configFile}`);
+            expect(filesToString(outputDir)).toMatchSnapshot();
+          }
+        )
+      )
+    );
+  });
+
+  it.each(projects)(
+    "builds %s via config file with cli override",
+    async (projectDir) => {
+      const inputDir = getInputDir(projectDir);
+      await inDir(topDir, () =>
+        withTempDir((outputDir) =>
+          withTempFile(
             JSON.stringify({
               inputDir,
               outputDir,
               exclude,
             }),
             (configFile) => {
-              run(`node dist/bin/main.js --config ${configFile}`);
+              run(`node dist/bin/main.js --config ${configFile} -p about`);
               expect(filesToString(outputDir)).toMatchSnapshot();
             }
           )
+        )
       );
-    });
-  });
+    }
+  );
 });
 
 function run(command: string) {

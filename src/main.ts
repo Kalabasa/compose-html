@@ -17,11 +17,11 @@ program
 const configPath = program.getOptionValue("config");
 if (configPath) {
   const config = readConfig(configPath);
-  program.setOptionValueWithSource("input", config.inputDir, "config");
-  program.setOptionValueWithSource("output", config.outputDir, "config");
-  program.setOptionValueWithSource("root", config.rootDir, "config");
-  program.setOptionValueWithSource("pagePattern", config.pagePattern, "config");
-  program.setOptionValueWithSource("exclude", config.exclude, "config");
+  setOptionFromConfigValue("input", config.inputDir);
+  setOptionFromConfigValue("output", config.outputDir);
+  setOptionFromConfigValue("root", config.rootDir);
+  setOptionFromConfigValue("pagePattern", config.pagePattern);
+  setOptionFromConfigValue("exclude", config.exclude);
 }
 
 const options = program.opts();
@@ -51,4 +51,10 @@ function resolveDirOption(value: string) {
 
 function readConfig(path: string) {
   return JSON.parse(readFileSync(path).toString()) as unknown as any;
+}
+
+function setOptionFromConfigValue(key: string, configValue: string) {
+  if (program.getOptionValueSource(key) != "cli") {
+    program.setOptionValueWithSource(key, configValue, "config");
+  }
 }
