@@ -28,7 +28,7 @@ const options = program.opts();
 const inputDir = resolveDirOption(options.input);
 const outputDir = resolveDirOption(options.output);
 const rootDir = resolveDirOption(options.root);
-const pagePattern = resolveDirOption(options.pagePattern);
+const pagePattern = options.pagePattern;
 const exclude =
   options.exclude &&
   options.exclude.map((p: string) => path.resolve(process.cwd(), p));
