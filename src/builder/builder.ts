@@ -14,6 +14,7 @@ type BuildOptions = {
   inputDir?: string;
   outputDir?: string;
   rootDir?: string;
+  pagePattern?: string;
   exclude?: string[];
   beautify?: HTMLBeautifyOptions | false;
 };
@@ -33,6 +34,7 @@ export async function build(options: BuildOptions = {}) {
     inputDir,
     outputDir,
     rootDir: rootDirOption,
+    pagePattern,
     exclude,
     beautify,
   } = Object.assign({}, DEFAULT_OPTIONS, options);
@@ -49,6 +51,13 @@ export async function build(options: BuildOptions = {}) {
     formatPath(rootDir),
     "\n"
   );
+
+  if (pagePattern) {
+    logger.info("Page filter pattern:", pagePattern);
+  }
+  const checkPageFilter = pagePattern
+    ? (pageFilePath: string) => pageFilePath.includes(pagePattern)
+    : () => true;
 
   /** @type {glob.IOptions} */
   const htmlGlobOptions = { nodir: true, ignore: exclude };
@@ -70,7 +79,9 @@ export async function build(options: BuildOptions = {}) {
 
     if (component.page) {
       if (component.filePath.startsWith(rootDir)) {
-        pageComponents.push(component);
+        if (checkPageFilter(component.filePath)) {
+          pageComponents.push(component);
+        }
       } else {
         logger.warn(
           "Page component found outside root dir:",
