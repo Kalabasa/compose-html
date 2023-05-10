@@ -9,7 +9,7 @@ program
   .option("--config <path>", "Path to configuration file")
   .option("-i, --input <dir>")
   .option("-o, --output <dir>")
-  .option("-p, --page-pattern <pattern...>")
+  .option("-p, --page-pattern <pattern>")
   .option("--exclude <pattern...>")
   .option("--root <dir>")
   .parse();
