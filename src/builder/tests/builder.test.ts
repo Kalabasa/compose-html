@@ -10,7 +10,7 @@ describe("builder", () => {
   jest.setTimeout(20 * 1000);
 
   const topDir = resolve(__dirname, "../../..");
-  const projects = ["project1"];
+  const projects = ["project1", "project2"];
   const exclude = ["**/dont-process.html"];
 
   beforeAll(() =>

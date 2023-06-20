@@ -1,0 +1,18 @@
+<div class="list">
+  <script render>
+    // fixme: if this iteration is at the page level, item styles don't render
+    for (const item of data) {
+      yield html`<item>${data.title}</item>`;
+    }
+  </script>
+</div>
+
+<script static>
+  const data = [{ title: "foo" }, { title: "bar" }, { title: "baz" }];
+</script>
+
+<style>
+  .list {
+    display: grid;
+  }
+</style>

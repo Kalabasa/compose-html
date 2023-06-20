@@ -270,3 +270,44 @@ exports[`builder builds project1 via config file with cli override 1`] = `
   </body>
 </html>"
 `;
+
+exports[`builder builds project2 1`] = `
+"./list/index.html:
+<html>
+<head></head>
+
+<body>
+  <div class="item">Item: </div>
+  <div class="item">Item: </div>
+  <div class="item">Item: </div>
+</body>
+</html>"
+`;
+
+exports[`builder builds project2 via cli 1`] = `
+"./list/index.html:
+<html>
+<head></head>
+
+<body>
+   <div class="item">Item: </div>
+   <div class="item">Item: </div>
+   <div class="item">Item: </div>
+</body>
+</html>"
+`;
+
+exports[`builder builds project2 via config file 1`] = `
+"./list/index.html:
+<html>
+<head></head>
+
+<body>
+   <div class="item">Item: </div>
+   <div class="item">Item: </div>
+   <div class="item">Item: </div>
+</body>
+</html>"
+`;
+
+exports[`builder builds project2 via config file with cli override 1`] = `""`;
