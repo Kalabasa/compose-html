@@ -9,7 +9,13 @@ describe("render_scripts", () => {
   let component: Component;
 
   const renderList = (nodes: Iterable<Node>) => {
-    const renderer = new Renderer();
+    const nestTestComponent = compile(
+      "nest-test",
+      "nest-test.html",
+      ":<slot />:"
+    );
+
+    const renderer = new Renderer(new Map([["nest-test", nestTestComponent]]));
     return renderer.renderList(nodes);
   };
 
@@ -160,5 +166,15 @@ describe("render_scripts", () => {
     await evaluateScripts(content, component, {}, [], renderList);
 
     expect(toHTML(content)).toBe(`<div><span>foo</span></div>`);
+  });
+
+  it("renders nested components", async () => {
+    const content = parse(
+      '<script render="gen">yield html`<nest-test>foo</nest-test>`; yield html`<nest-test>bar</nest-test>`</script>'
+    );
+
+    await evaluateScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe(`:foo::bar:`);
   });
 });
