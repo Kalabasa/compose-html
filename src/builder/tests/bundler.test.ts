@@ -77,7 +77,7 @@ describe("extractScriptBundles", () => {
 
     expect(bundles).toHaveLength(1);
     expect(bundles[0].code).toBe(
-      `<script async="">console.log("world hello");</script>`
+      `console.log("world hello");`
     );
     expect(toHTML(pageWithFooAsync.nodes)).toBe(
       `<html><head><script async="" src="${bundles[0].src}"></script><script>console.log("foo");</script></head><body></body></html>`
@@ -96,7 +96,7 @@ describe("extractScriptBundles", () => {
     );
 
     expect(bundles).toHaveLength(1);
-    expect(bundles[0].code).toBe(`<script>console.log("foo");</script>`);
+    expect(bundles[0].code).toBe(`console.log("foo");`);
     expect(toHTML(pageWithFoo.nodes)).toBe(
       `<html><head><script src="${bundles[0].src}"></script></head><body></body></html>`
     );

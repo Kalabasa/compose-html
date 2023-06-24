@@ -22,8 +22,10 @@ export function extractScriptBundles(
   srcPrefix: string,
   components: Iterable<Component>
 ): Array<Bundle> {
-  const { scriptElements, scriptComponents } = mapScripts(components);
-  const scriptPages = mapScriptsToPages(pages);
+  const { scriptPages, scriptElements, scriptComponents } = mapScripts(
+    pages,
+    components
+  );
 
   const scriptBundles = generateBundles(
     scriptElements,
@@ -59,8 +61,7 @@ function mergeBundles(
       .sort()
       .join(":");
 
-    let bucketBundle = buckets.get(signature);
-
+    const bucketBundle = buckets.get(signature);
     if (bucketBundle) {
       // merge bundles
       bucketBundle.src += "-" + bundle.src;
@@ -81,10 +82,10 @@ function generateBundles(
 ) {
   const scriptBundles = new Map<string, Bundle>();
   for (const [scriptHTML, pages] of scriptPages.entries()) {
-    const canBeExtracted =
-      pages.length >= minPageUsage ||
-      scriptElements.get(scriptHTML)?.hasAttribute("async");
+    const element = checkNotNull(scriptElements.get(scriptHTML));
 
+    const canBeExtracted =
+      pages.length >= minPageUsage || element.hasAttribute("async");
     if (!canBeExtracted) continue;
 
     const component = scriptComponents.get(scriptHTML);
@@ -92,7 +93,7 @@ function generateBundles(
 
     const bundle: Bundle = {
       src: component.name,
-      code: scriptHTML,
+      code: element.innerHTML,
     };
 
     scriptBundles.set(scriptHTML, bundle);
@@ -136,34 +137,30 @@ function replaceScriptsWithBundles(
   }
 }
 
-function mapScriptsToPages(pages: Page[]) {
+function mapScripts(pages: Page[], components: Iterable<Component>) {
   const scriptPages = new Map<string, Page[]>();
+  const scriptElements = new Map<string, HTMLScriptElement>();
+  const scriptComponents = new Map<string, Component>();
+
   for (const page of pages) {
     for (const script of findScripts(page.nodes)) {
-      let pages = scriptPages.get(script.outerHTML);
+      scriptElements.set(script.outerHTML, script);
 
-      if (!pages) {
-        pages = [];
-        scriptPages.set(script.outerHTML, pages);
-      }
+      let pages = scriptPages.get(script.outerHTML);
+      if (!pages) scriptPages.set(script.outerHTML, (pages = []));
 
       pages.push(page);
     }
   }
-  return scriptPages;
-}
 
-function mapScripts(components: Iterable<Component>) {
-  // scriptElements doesn't include page-level scripts, only components', which is fine
-  const scriptElements = new Map<string, HTMLScriptElement>();
-  const scriptComponents = new Map<string, Component>();
   for (const component of components) {
     for (const script of component.clientScripts) {
       scriptElements.set(script.outerHTML, script);
       scriptComponents.set(script.outerHTML, component);
     }
   }
-  return { scriptElements, scriptComponents };
+
+  return { scriptPages, scriptElements, scriptComponents };
 }
 
 function* findScripts(nodes: Iterable<Node>): Generator<HTMLScriptElement> {

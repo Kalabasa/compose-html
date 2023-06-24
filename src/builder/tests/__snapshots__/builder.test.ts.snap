@@ -76,9 +76,8 @@ exports[`builder builds project1 1`] = `
 </html>
 
 ./scripts/x-button.js:
-<script>
-  document.querySelectorAll(".button");
-</script>"
+
+  document.querySelectorAll(".button");"
 `;
 
 exports[`builder builds project1 via cli 1`] = `
@@ -157,9 +156,8 @@ exports[`builder builds project1 via cli 1`] = `
 </html>
 
 ./scripts/x-button.js:
-<script>
-  document.querySelectorAll(".button");
-</script>"
+
+  document.querySelectorAll(".button");"
 `;
 
 exports[`builder builds project1 via config file 1`] = `
@@ -238,9 +236,8 @@ exports[`builder builds project1 via config file 1`] = `
 </html>
 
 ./scripts/x-button.js:
-<script>
-  document.querySelectorAll(".button");
-</script>"
+
+  document.querySelectorAll(".button");"
 `;
 
 exports[`builder builds project1 via config file with cli override 1`] = `
