@@ -15,9 +15,7 @@ exports[`builder builds project1 1`] = `
       color: blue;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -54,9 +52,7 @@ exports[`builder builds project1 1`] = `
       color: red;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -74,7 +70,12 @@ exports[`builder builds project1 1`] = `
     <a href="about.html">About</a>
   </nav>
 </body>
-</html>"
+</html>
+
+./scripts/x-button.js:
+<script>
+  document.querySelectorAll(".button");
+</script>"
 `;
 
 exports[`builder builds project1 via cli 1`] = `
@@ -92,9 +93,7 @@ exports[`builder builds project1 via cli 1`] = `
       color: blue;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -131,9 +130,7 @@ exports[`builder builds project1 via cli 1`] = `
       color: red;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -151,7 +148,12 @@ exports[`builder builds project1 via cli 1`] = `
     <a href="about.html">About</a>
   </nav>
 </body>
-</html>"
+</html>
+
+./scripts/x-button.js:
+<script>
+  document.querySelectorAll(".button");
+</script>"
 `;
 
 exports[`builder builds project1 via config file 1`] = `
@@ -169,9 +171,7 @@ exports[`builder builds project1 via config file 1`] = `
       color: blue;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -208,9 +208,7 @@ exports[`builder builds project1 via config file 1`] = `
       color: red;
     }
   </style>
-  <script>
-    document.querySelectorAll(".button");
-  </script>
+  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -228,7 +226,12 @@ exports[`builder builds project1 via config file 1`] = `
     <a href="about.html">About</a>
   </nav>
 </body>
-</html>"
+</html>
+
+./scripts/x-button.js:
+<script>
+  document.querySelectorAll(".button");
+</script>"
 `;
 
 exports[`builder builds project1 via config file with cli override 1`] = `
