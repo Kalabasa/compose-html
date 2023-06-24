@@ -34,32 +34,43 @@ export function extractScriptBundles(
     minPageUsage
   );
 
-  mergeBundles(scriptPages, scriptBundles);
+  mergeBundles(scriptPages, scriptElements, scriptBundles);
 
-  for (const bundle of new Set(scriptBundles.values())) {
+  const bundleSet = new Set(scriptBundles.values());
+
+  for (const bundle of bundleSet) {
     bundle.src = `${srcPrefix}${bundle.src}.js`;
   }
 
   replaceScriptsWithBundles(pages, scriptBundles);
 
-  return [...scriptBundles.values()];
+  return [...bundleSet];
 }
 
 // Merge bundles that are always included together in the same pages
 function mergeBundles(
   scriptPages: Map<string, Page[]>,
+  scriptElements: Map<string, HTMLScriptElement>,
   scriptBundles: Map<string, Bundle>
 ): void {
-  // bucket key = page usage signature / hash
+  // bucket key = script loading type + page usage signature / hash
   const buckets = new Map<string, Bundle>();
 
   for (const [scriptHTML, bundle] of scriptBundles.entries()) {
+    const element = checkNotNull(scriptElements.get(scriptHTML));
+    const loadingType =
+      (element.hasAttribute("async") ? "a" : "s") +
+      (element.hasAttribute("defer") ? "d" : "e");
+
     const pages = scriptPages.get(scriptHTML) ?? [];
 
-    const signature = pages
-      .map((page) => page.pagePath)
-      .sort()
-      .join(":");
+    const signature =
+      loadingType +
+      "::" +
+      pages
+        .map((page) => page.pagePath)
+        .sort()
+        .join(":");
 
     const bucketBundle = buckets.get(signature);
     if (bucketBundle) {
@@ -106,32 +117,32 @@ function replaceScriptsWithBundles(
   scriptBundles: Map<string, Bundle>
 ) {
   for (const page of pages) {
-    let bundleLogs: string[] | undefined;
-    if (logger.getLevel() <= logger.levels.DEBUG) {
-      bundleLogs = [];
-    }
+    const included = new Set<Bundle>();
 
     for (const script of findScripts(page.nodes)) {
       const bundle = scriptBundles.get(script.outerHTML);
       if (bundle) {
+        if (included.has(bundle)) {
+          script.remove();
+          continue;
+        }
+
+        included.add(bundle);
+
         const bundleScript = createElement("script");
         for (const attr of script.attributes) {
           bundleScript.setAttribute(attr.name, attr.value);
         }
         bundleScript.src = bundle.src;
         script.replaceWith(bundleScript);
-
-        if (logger.getLevel() <= logger.levels.DEBUG) {
-          bundleLogs!.push(bundle.src);
-        }
       }
     }
 
-    if (bundleLogs?.length) {
+    if (included.size) {
       logger.debug(
-        `Extracting ${bundleLogs.length} bundles from:`,
+        `Extracting ${included.size} bundles from:`,
         page.pagePath,
-        bundleLogs.map((log) => "\n  " + log).join("")
+        [...included].map((bundle) => "\n  " + bundle.src).join("")
       );
     }
   }
