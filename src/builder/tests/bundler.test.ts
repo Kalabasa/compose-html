@@ -38,10 +38,10 @@ describe("extractScriptBundles", () => {
     createPage("pageWithFoo", `<html><foo/></html>`);
   const createPageWithFooAsync = () =>
     createPage("pageWithFooAsync", `<html><foo/><async/></html>`);
-  const createPageWithAsyncDefer = () =>
-    createPage("pageWithAsyncDefer", `<html><async/><defer/></html>`);
   const createPageWithFooDefer = () =>
     createPage("pageWithFooDefer", `<html><foo/><defer/></html>`);
+    const createPageWithScript = () =>
+      createPage("pageWithScript", `<html><script client defer>alert("hey")</script></html>`);
 
   it("keeps external scripts", async () => {
     const pageWithExternal = await createPageWithExternal();
@@ -51,6 +51,17 @@ describe("extractScriptBundles", () => {
     expect(bundles).toHaveLength(0);
     expect(toHTML(pageWithExternal.nodes)).toBe(
       `<html><head><script src="https://external.cdn/script.js"></script></head><body></body></html>`
+    );
+  });
+
+  it("keeps inline scripts", async () => {
+    const pageWithScript = await createPageWithScript();
+
+    const bundles = extractScriptBundles([pageWithScript], 0, "", components);
+
+    expect(bundles).toHaveLength(0);
+    expect(toHTML(pageWithScript.nodes)).toBe(
+      `<html><head></head><body><script defer="">alert("hey")</script></body></html>`
     );
   });
 

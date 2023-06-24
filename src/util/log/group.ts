@@ -13,6 +13,8 @@ export function installLogGrouper(logger: Logger): void {
     const originalMethod = originalFactory(methodName, logLevel, loggerName);
 
     return (...msg: any[]) => {
+      if (logger.getLevel() > logLevel) return;
+
       if (currentIndent === 0) {
         originalMethod(...msg);
       } else {

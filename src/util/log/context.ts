@@ -11,6 +11,8 @@ export function installContextWrapper(logger: Logger) {
     const originalMethod = originalFactory(methodName, logLevel, loggerName);
 
     return (...msg: any[]) => {
+      if (logger.getLevel() > logLevel) return;
+
       const context = [
         formatTag(currentGlobalContext),
         formatTag(currentContext),

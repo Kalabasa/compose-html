@@ -16,7 +16,6 @@ describe("builder", () => {
   beforeAll(() =>
     inDir(topDir, () => {
       run("npm install");
-      run("npm run build");
     })
   );
 

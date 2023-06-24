@@ -83,16 +83,13 @@ function generateBundles(
   for (const [scriptHTML, pages] of scriptPages.entries()) {
     const canBeExtracted =
       pages.length >= minPageUsage ||
-      checkNotNull(
-        scriptElements.get(scriptHTML),
-        "Missing element for scriptHTML:" + scriptHTML
-      ).hasAttribute("async");
+      scriptElements.get(scriptHTML)?.hasAttribute("async");
 
-    if (!canBeExtracted) {
-      continue;
-    }
+    if (!canBeExtracted) continue;
 
-    const component = checkNotNull(scriptComponents.get(scriptHTML));
+    const component = scriptComponents.get(scriptHTML);
+    if (!component) continue;
+
     const bundle: Bundle = {
       src: component.name,
       code: scriptHTML,
@@ -157,6 +154,7 @@ function mapScriptsToPages(pages: Page[]) {
 }
 
 function mapScripts(components: Iterable<Component>) {
+  // scriptElements doesn't include page-level scripts, only components', which is fine
   const scriptElements = new Map<string, HTMLScriptElement>();
   const scriptComponents = new Map<string, Component>();
   for (const component of components) {

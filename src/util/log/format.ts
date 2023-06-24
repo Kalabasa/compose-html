@@ -15,6 +15,8 @@ export function installFormatter(logger: Logger) {
     const originalMethod = originalFactory(methodName, logLevel, loggerName);
 
     return (...msg: any[]) => {
+      if (logger.getLevel() > logLevel) return;
+
       return originalMethod(...msg.map((item) => format(item)));
     };
   };
