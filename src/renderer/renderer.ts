@@ -47,7 +47,9 @@ export class Renderer {
       "\nroot component:",
       component.name
     );
-    logger.trace("\n" + formatHTMLValue(toHTML(component.content)) + "\n");
+    if (logger.getLevel() <= logger.levels.TRACE) {
+      logger.trace("\n" + formatHTMLValue(toHTML(component.content)) + "\n");
+    }
 
     let context: Context | undefined;
 

@@ -107,7 +107,7 @@ describe("renderPage", () => {
     const result = renderPage([], data);
 
     expect(toHTML(result)).toEqual(
-      `<html><head><title>foo</title><style>body { margin: 0; }</style><script>console.log(1);</script></head><body><script>document.querySelector('*');</script></body></html>`
+      `<html><head><title>foo</title><style>body { margin: 0; }</style><script>console.log(1);</script></head><body><script defer="">document.querySelector('*');</script></body></html>`
     );
   });
 });

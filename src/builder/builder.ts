@@ -158,10 +158,15 @@ export async function build(options: BuildOptions = {}) {
     });
   }
 
-  const scriptBundles = extractScriptBundles(pages);
+  const scriptBundles = extractScriptBundles(
+    pages,
+    2,
+    "/scripts/",
+    componentMap.values()
+  );
 
-  for (const { relPath, code } of scriptBundles) {
-    const outPath = path.resolve(outputDir, relPath);
+  for (const { src, code } of scriptBundles) {
+    const outPath = path.resolve(outputDir, "." + src);
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(outPath, code);
     logger.info("Bundled script →", formatPath(outPath));

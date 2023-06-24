@@ -14,7 +14,7 @@ export function renderPage(bodyContent: Node[], pageData: PageData): Element {
 
   const { html, head, body } = queryPageSkeleton(page.skeleton.cloneNode(true));
 
-  // These are ReadonlyArrays. Expect immutability of nodes, so clone
+  // Nodes can only be in one Document, clone so we don't steal it from PageData
   checkNotNull(head).replaceChildren(
     ...cloneNodes(pageData.metadata),
     ...cloneNodes(pageData.styles),
@@ -22,11 +22,9 @@ export function renderPage(bodyContent: Node[], pageData: PageData): Element {
   );
 
   checkNotNull(body).replaceChildren(
-    // No need to clone bodyContent, it's an incremental object
+    // No need to clone bodyContent
     ...bodyContent,
-    ...removeDeferAttr(
-      cloneNodes(pageData.clientScripts.filter(isDeferredScript))
-    )
+    ...cloneNodes(pageData.clientScripts.filter(isDeferredScript))
   );
 
   return checkNotNull(html);
@@ -38,14 +36,6 @@ function isDeferredScript(script: HTMLScriptElement) {
 
 function not(predicate: (...args: unknown[]) => boolean) {
   return (...args: unknown[]) => !predicate(...args);
-}
-
-// mutates input directly
-function* removeDeferAttr(scripts: Iterable<HTMLScriptElement>) {
-  for (const script of scripts) {
-    script.defer = false;
-    yield script;
-  }
 }
 
 function* cloneNodes<T extends Node>(nodes: Iterable<T>) {
