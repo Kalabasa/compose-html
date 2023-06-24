@@ -272,40 +272,79 @@ exports[`builder builds project1 via config file with cli override 1`] = `
 `;
 
 exports[`builder builds project2 1`] = `
-"./list/index.html:
+"./page/index.html:
 <html>
-<head></head>
+<head>
+  <style>
+    .list {
+      display: grid;
+    }
+  </style>
+  <style>
+    .item {
+      font-weight: bold;
+    }
+  </style>
+</head>
 
 <body>
-  <div class="item">Item: </div>
-  <div class="item">Item: </div>
-  <div class="item">Item: </div>
+  <div class="list">
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+  </div>
 </body>
 </html>"
 `;
 
 exports[`builder builds project2 via cli 1`] = `
-"./list/index.html:
+"./page/index.html:
 <html>
-<head></head>
+<head>
+  <style>
+    .list {
+      display: grid;
+    }
+  </style>
+  <style>
+    .item {
+      font-weight: bold;
+    }
+  </style>
+</head>
 
 <body>
-   <div class="item">Item: </div>
-   <div class="item">Item: </div>
-   <div class="item">Item: </div>
+  <div class="list">
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+  </div>
 </body>
 </html>"
 `;
 
 exports[`builder builds project2 via config file 1`] = `
-"./list/index.html:
+"./page/index.html:
 <html>
-<head></head>
+<head>
+  <style>
+    .list {
+      display: grid;
+    }
+  </style>
+  <style>
+    .item {
+      font-weight: bold;
+    }
+  </style>
+</head>
 
 <body>
-   <div class="item">Item: </div>
-   <div class="item">Item: </div>
-   <div class="item">Item: </div>
+  <div class="list">
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+    <div class="item">Item: </div>
+  </div>
 </body>
 </html>"
 `;
