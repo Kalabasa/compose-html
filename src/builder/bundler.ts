@@ -83,7 +83,10 @@ function generateBundles(
   for (const [scriptHTML, pages] of scriptPages.entries()) {
     const canBeExtracted =
       pages.length >= minPageUsage ||
-      checkNotNull(scriptElements.get(scriptHTML)).hasAttribute("async");
+      checkNotNull(
+        scriptElements.get(scriptHTML),
+        "Missing element for scriptHTML:" + scriptHTML
+      ).hasAttribute("async");
 
     if (!canBeExtracted) {
       continue;
