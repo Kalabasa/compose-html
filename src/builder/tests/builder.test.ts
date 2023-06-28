@@ -19,7 +19,7 @@ describe("builder", () => {
     })
   );
 
-  it.each(projects)("builds %s", async (projectDir) => {
+  it.each(projects)("builds %s via api", async (projectDir) => {
     const inputDir = getInputDir(projectDir);
     await inDir(topDir, () =>
       withTempDir(async (outputDir) => {
@@ -147,5 +147,5 @@ function filesToString(rootDir: string): string {
     result += "\n\n";
   }
 
-  return result.trimEnd();
+  return "\n" + result.trim() + "\n";
 }

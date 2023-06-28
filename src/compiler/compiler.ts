@@ -124,7 +124,11 @@ function extractPage(sourceFragment: DocumentFragment) {
     if (!html.contains(body)) html.appendChild(body);
     if (!html.contains(head)) html.prepend(head);
 
+    const path = html.getAttribute("path") ?? undefined;
+    if (path) html.removeAttribute("path");
+
     page = {
+      path,
       skeleton: html as HTMLElement,
     };
   }

@@ -12,5 +12,6 @@ export interface Component {
 }
 
 export type Page = {
+  path?: string;
   skeleton: Element;
 };

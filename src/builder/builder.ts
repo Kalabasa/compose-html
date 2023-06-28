@@ -133,17 +133,28 @@ export async function build(options: BuildOptions = {}) {
   const absRootDir = path.resolve(rootDir);
 
   for (const component of pageComponents) {
-    const pagePath = path.relative(rootDir, component.filePath);
+    let pagePath: string, outPath: string;
     const srcPath = component.filePath;
-    const outPath =
-      component.name === "index"
-        ? path.resolve(outputDir, pagePath)
-        : path.resolve(
-            outputDir,
-            path.dirname(pagePath),
-            component.name,
-            "index.html"
-          );
+
+    if (component.page?.path) {
+      // custom path specified by page (<html page="/my/path.html">)
+      pagePath = path.normalize("./" + component.page.path);
+      outPath = path.resolve(outputDir, pagePath);
+    } else {
+      // automatic path determined by file structure
+      pagePath = path.relative(rootDir, srcPath);
+      if (component.name === "index") {
+        outPath = path.resolve(outputDir, pagePath);
+      } else {
+        // for pretty URLs, "page.html" → "page/index.html"
+        outPath = path.resolve(
+          outputDir,
+          path.dirname(pagePath),
+          component.name,
+          "index.html"
+        );
+      }
+    }
 
     const nodes = await renderer.render(component, {
       rootDir: absRootDir,
