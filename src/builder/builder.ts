@@ -184,7 +184,8 @@ export async function build(options: BuildOptions = {}) {
   }
 
   for (const { srcPath, outPath, nodes } of pages) {
-    let html = toHTML(nodes);
+    // Hack: This is the only place to insert the doctype, as it’s not a node
+    let html = "<!DOCTYPE html>" + toHTML(nodes);
     if (beautify) {
       initBeautifyDefaults(beautify, html);
       html = beautifyHTML(html, beautify);

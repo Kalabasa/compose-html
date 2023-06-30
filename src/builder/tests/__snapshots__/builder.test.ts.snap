@@ -3,6 +3,7 @@
 exports[`builder builds project1 via api 1`] = `
 "
 ./about.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>About Project 1</title>
@@ -40,6 +41,7 @@ exports[`builder builds project1 via api 1`] = `
 
 
 ./index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>Project 1</title>
@@ -85,6 +87,7 @@ exports[`builder builds project1 via api 1`] = `
 exports[`builder builds project1 via cli 1`] = `
 "
 ./about.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>About Project 1</title>
@@ -122,6 +125,7 @@ exports[`builder builds project1 via cli 1`] = `
 
 
 ./index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>Project 1</title>
@@ -167,6 +171,7 @@ exports[`builder builds project1 via cli 1`] = `
 exports[`builder builds project1 via config file 1`] = `
 "
 ./about.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>About Project 1</title>
@@ -204,6 +209,7 @@ exports[`builder builds project1 via config file 1`] = `
 
 
 ./index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>Project 1</title>
@@ -249,6 +255,7 @@ exports[`builder builds project1 via config file 1`] = `
 exports[`builder builds project1 via config file with cli override 1`] = `
 "
 ./about.html:
+<!DOCTYPE html>
 <html>
 <head>
   <title>About Project 1</title>
@@ -291,6 +298,7 @@ exports[`builder builds project1 via config file with cli override 1`] = `
 exports[`builder builds project2 via api 1`] = `
 "
 ./page/index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -319,6 +327,7 @@ exports[`builder builds project2 via api 1`] = `
 exports[`builder builds project2 via cli 1`] = `
 "
 ./page/index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -347,6 +356,7 @@ exports[`builder builds project2 via cli 1`] = `
 exports[`builder builds project2 via config file 1`] = `
 "
 ./page/index.html:
+<!DOCTYPE html>
 <html>
 <head>
   <style>
