@@ -1,6 +1,6 @@
 {
   "name": "compose-html",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "main": "dist/cjs/main.js",
   "types": "dist/types/main.d.ts",
   "bin": {
