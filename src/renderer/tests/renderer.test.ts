@@ -83,6 +83,20 @@ describe("renderer", () => {
     );
   });
 
+  it("renders component in named slot", async () => {
+    const renderer = new Renderer(
+      new Map([
+        ["outer", compile("outer", "outer.html", `<div><h1><slot name="target" /></h1><slot /></div>`)],
+        ["inner", compile("inner", "inner.html", `<span><slot /></span>`)],
+      ])
+    );
+    const output = await renderer.render(
+      compile("test", "test.html", `<outer><inner slot="target">foo</inner>bar</outer>`)
+    );
+
+    expect(toHTML(output)).toBe(`<div><h1><span>foo</span></h1>bar</div>`);
+  });
+
   it("renders combined metadata in a page", async () => {
     const myMeta = compile(
       "my-meta",

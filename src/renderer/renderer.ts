@@ -105,8 +105,6 @@ export class Renderer {
   }
 
   async renderNode(node: Node, context?: Context): Promise<Node[]> {
-    const children = await this.renderList(childNodesOf(node), context);
-
     let result: Node[];
 
     let component: Component | undefined = undefined;
@@ -123,7 +121,7 @@ export class Renderer {
       const componentOutput = await renderComponent(
         component,
         mapAttrs(node.attributes),
-        children,
+        Array.from(childNodesOf(node)),
         (nodes) => this.renderList(nodes, context),
         context ?? nullRenderContext
       );
@@ -148,11 +146,13 @@ export class Renderer {
       isElement(node) &&
       node.tagName.toLowerCase() === `${DZ_PREFIX}head`
     ) {
+      const children = await this.renderList(childNodesOf(node), context);
       // todo: if <head> is processed on render, then metadata compilation step is redundant
       children.forEach((child) => context.metadata.add(child));
       result = [];
     } else {
       const clone = node.cloneNode(false);
+      const children = await this.renderList(childNodesOf(node), context);
       for (const child of children) {
         appendChild(clone, child);
       }

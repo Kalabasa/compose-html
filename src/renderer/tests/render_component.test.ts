@@ -4,8 +4,14 @@ import { Renderer } from "renderer/renderer";
 import { renderComponent } from "renderer/render_component";
 
 describe("render_component", () => {
+  const fooComponent = compile(
+    "foo",
+    "foo.html",
+    `<span class="foo"><slot /></span>`
+  );
+
   const renderList = (nodes: Iterable<Node>) => {
-    const renderer = new Renderer();
+    const renderer = new Renderer(new Map([["foo", fooComponent]]));
     return renderer.renderList(nodes);
   };
 
