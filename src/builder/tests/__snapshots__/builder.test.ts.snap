@@ -17,7 +17,6 @@ exports[`builder builds project1 via api 1`] = `
     color: blue;
   }
 </style>
-  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -26,6 +25,7 @@ exports[`builder builds project1 via api 1`] = `
   </div>
   <div>This is a test project.</div>
   <button class="button">Fund</button>
+  <script defer="" src="/scripts/x-button.js"></script>
 </body>
 </html>
 
@@ -55,7 +55,6 @@ exports[`builder builds project1 via api 1`] = `
     color: red;
   }
 </style>
-  <script src="/scripts/x-button.js"></script>
 </head>
 <body>
   <div class="header">
@@ -72,11 +71,15 @@ exports[`builder builds project1 via api 1`] = `
   <nav>
     <a href="about.html">About</a>
   </nav>
-  <script defer="">
-  alert("Welcome!");
-</script>
+  <script defer="" src="/scripts/x-button.js"></script>
+  <script async="" defer="" src="/scripts/index_html.js"></script>
 </body>
 </html>
+
+./scripts/index_html.js:
+
+  alert("Welcome!");
+
 
 ./scripts/x-button.js:
 
