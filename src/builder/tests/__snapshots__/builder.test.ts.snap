@@ -8,15 +8,15 @@ exports[`builder builds project1 via api 1`] = `
 <head>
   <title>About Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: blue;
-    }
-  </style>
+  * {
+    color: blue;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -46,15 +46,15 @@ exports[`builder builds project1 via api 1`] = `
 <head>
   <title>Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: red;
-    }
-  </style>
+  * {
+    color: red;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -73,8 +73,8 @@ exports[`builder builds project1 via api 1`] = `
     <a href="about.html">About</a>
   </nav>
   <script defer="">
-    alert("Welcome!");
-  </script>
+  alert("Welcome!");
+</script>
 </body>
 </html>
 
@@ -92,15 +92,15 @@ exports[`builder builds project1 via cli 1`] = `
 <head>
   <title>About Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: blue;
-    }
-  </style>
+  * {
+    color: blue;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -130,15 +130,15 @@ exports[`builder builds project1 via cli 1`] = `
 <head>
   <title>Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: red;
-    }
-  </style>
+  * {
+    color: red;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -157,8 +157,8 @@ exports[`builder builds project1 via cli 1`] = `
     <a href="about.html">About</a>
   </nav>
   <script defer="">
-    alert("Welcome!");
-  </script>
+  alert("Welcome!");
+</script>
 </body>
 </html>
 
@@ -176,15 +176,15 @@ exports[`builder builds project1 via config file 1`] = `
 <head>
   <title>About Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: blue;
-    }
-  </style>
+  * {
+    color: blue;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -214,15 +214,15 @@ exports[`builder builds project1 via config file 1`] = `
 <head>
   <title>Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: red;
-    }
-  </style>
+  * {
+    color: red;
+  }
+</style>
   <script src="/scripts/x-button.js"></script>
 </head>
 <body>
@@ -241,8 +241,8 @@ exports[`builder builds project1 via config file 1`] = `
     <a href="about.html">About</a>
   </nav>
   <script defer="">
-    alert("Welcome!");
-  </script>
+  alert("Welcome!");
+</script>
 </body>
 </html>
 
@@ -260,18 +260,18 @@ exports[`builder builds project1 via config file with cli override 1`] = `
 <head>
   <title>About Project 1</title>
   <style>
-    .button {
-      border-radius: 11px;
-    }
-  </style>
+  .button {
+    border-radius: 11px;
+  }
+</style>
   <style>
-    * {
-      color: blue;
-    }
-  </style>
+  * {
+    color: blue;
+  }
+</style>
   <script>
-    document.querySelectorAll(".button");
-  </script>
+  document.querySelectorAll(".button");
+</script>
 </head>
 <body>
   <div class="header">
@@ -302,15 +302,15 @@ exports[`builder builds project2 via api 1`] = `
 <html>
 <head>
   <style>
-    .list {
-      display: grid;
-    }
-  </style>
+  .list {
+    display: grid;
+  }
+</style>
   <style>
-    .item {
-      font-weight: bold;
-    }
-  </style>
+  .item {
+    font-weight: bold;
+  }
+</style>
 </head>
 
 <body>
@@ -331,15 +331,15 @@ exports[`builder builds project2 via cli 1`] = `
 <html>
 <head>
   <style>
-    .list {
-      display: grid;
-    }
-  </style>
+  .list {
+    display: grid;
+  }
+</style>
   <style>
-    .item {
-      font-weight: bold;
-    }
-  </style>
+  .item {
+    font-weight: bold;
+  }
+</style>
 </head>
 
 <body>
@@ -360,15 +360,15 @@ exports[`builder builds project2 via config file 1`] = `
 <html>
 <head>
   <style>
-    .list {
-      display: grid;
-    }
-  </style>
+  .list {
+    display: grid;
+  }
+</style>
   <style>
-    .item {
-      font-weight: bold;
-    }
-  </style>
+  .item {
+    font-weight: bold;
+  }
+</style>
 </head>
 
 <body>
