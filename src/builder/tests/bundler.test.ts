@@ -147,6 +147,34 @@ describe("extractScriptBundles", () => {
     ]);
   });
 
+  it("extracts inline async scripts from page", async () => {
+    const pageComponent = compile(
+      "pageWithInlineAsync",
+      `pageWithInlineAsync.html`,
+      `<html><head><script async>console.log("page");</script></head></html>`
+    );
+
+    const nodes = await new Renderer(new Map()).render(pageComponent);
+
+    const bundles = extractScriptBundles(
+      [
+        {
+          pagePath: pageComponent.filePath,
+          nodes,
+        },
+      ],
+      Infinity,
+      "scripts/",
+      components
+    );
+
+    expect(bundles).toHaveLength(1);
+    expect(bundles[0].code).toBe(`console.log("page");`);
+    expect(toHTML(nodes)).toBe(
+      `<html><head><script async="" src="${bundles[0].src}"></script></head><body></body></html>`
+    );
+  });
+
   async function createPage(components: Component[]): Promise<Page> {
     const componentsHTML = components
       .map((component) => `<${component.name}/>`)

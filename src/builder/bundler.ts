@@ -2,7 +2,7 @@ import { Component } from "compiler/component";
 import { createElement, isInlineJavaScriptElement } from "dom/dom";
 import path from "node:path";
 import { createLogger } from "util/log";
-import { checkNotNull } from "util/preconditions";
+import { check, checkNotNull } from "util/preconditions";
 
 export type Page = {
   pagePath: string;
@@ -99,11 +99,20 @@ function generateBundles(
       pages.length >= minPageUsage || element.hasAttribute("async");
     if (!canBeExtracted) continue;
 
+    let src = "";
     const component = scriptComponents.get(scriptHTML);
-    if (!component) continue;
+    if (component) {
+      src = component.name;
+    } else {
+      check(pages.length === 1);
+      const page = pages[0];
+      src = page.pagePath.replaceAll(/\W/g, '_');
+    }
+
+    if (!src) continue;
 
     const bundle: Bundle = {
-      src: component.name,
+      src,
       code: element.innerHTML,
     };
 
