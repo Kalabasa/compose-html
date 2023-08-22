@@ -104,14 +104,7 @@ function generateBundles(
     if (component) {
       src = component.name;
     } else {
-      check(
-        pages.length === 1,
-        "Page-level script expected to belong to one page only. " +
-          `Found: ${pages.length}. ` +
-          pages.map((page) => page.pagePath).toString()
-      );
-      const page = pages[0];
-      src = page.pagePath.replaceAll(/\W/g, "_");
+      src = pages.map((page) => page.pagePath.replaceAll(/\W/g, "_")).join("-");
     }
 
     if (!src) continue;
