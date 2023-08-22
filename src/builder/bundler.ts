@@ -27,6 +27,17 @@ export function extractScriptBundles(
     components
   );
 
+  logger.debug(
+    "script to pages map:\n" +
+      Array.from(scriptPages.entries())
+        .map(
+          ([script, pages]) =>
+            `  \`${script.replaceAll(/\s+/g, " ").slice(0, 80)}\`\n` +
+            `      => ${pages.map((page) => page.pagePath).join(", ")}`
+        )
+        .join("\n")
+  );
+
   const scriptBundles = generateBundles(
     scriptElements,
     scriptComponents,

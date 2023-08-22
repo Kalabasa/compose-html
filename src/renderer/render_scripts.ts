@@ -47,7 +47,7 @@ function runStaticScripts(component: Component, vm: VM) {
     .map((el) => el.textContent)
     .join("\n");
   if (scriptCode) {
-    logger.debug(
+    logger.trace(
       "run static script:\n" +
         formatJSValue(scriptCode.replace(/^\s*\n|\s+$/g, ""))
     );
@@ -124,7 +124,7 @@ async function renderAttrValueIfDynamic(
   const expr = attrValue.slice(1, -1);
   const newValue = await runCode(`(async function(){ return ${expr} })()`);
 
-  logger.debug("rendered attr:", `"${attrValue}"`, "→", `"${newValue}"`);
+  logger.trace("rendered attr:", `"${attrValue}"`, "→", `"${newValue}"`);
   return { value: newValue };
 }
 
@@ -134,7 +134,7 @@ async function renderScriptElement(
 ) {
   const code = inOutElement.innerHTML;
 
-  logger.debug("render script:", formatJSValue(code.replace(/\n/g, " ")));
+  logger.trace("render script:", formatJSValue(code.replace(/\n/g, " ")));
   const asyncResults = unwrapResults(
     runCode(wrapCode(code, inOutElement)) as any
   );
@@ -143,7 +143,7 @@ async function renderScriptElement(
     results.push(result);
   }
 
-  logger.debug("render script result:", results);
+  logger.trace("render script result:", results);
   inOutElement.replaceWith(...results);
 
   // because the node was replaced, standard recursion won't work
@@ -160,7 +160,7 @@ function createHTMLTag(
   render: (nodes: Iterable<Node>) => Promise<Node[]>
 ): (segments: string[], ...expressions: any[]) => Promise<Node[]> {
   return async (segments: string[], ...expressions: any[]) => {
-    logger.debug("render HTML literal");
+    logger.trace("render HTML literal");
     logger.group();
 
     const raw = await rawHTMLTag(segments, ...expressions);

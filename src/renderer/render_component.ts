@@ -20,7 +20,7 @@ export async function renderComponent(
   render: (nodes: Iterable<Node>) => Promise<Node[]>,
   renderContext: RenderContext = nullRenderContext // fixme: code smell: unrelated param passthrough
 ): Promise<Iterable<Node>> {
-  logger.debug("component start:", `<${component.name} .. >`);
+  logger.trace("component start:", `<${component.name} .. >`);
   logger.group();
 
   const fragment = component.content.cloneNode(true);
@@ -45,8 +45,8 @@ export async function renderComponent(
   }
 
   logger.groupEnd();
-  logger.debug("component done:", `<${component.name} .. />`, "→", fragment);
-  logger.trace("\n" + formatHTMLValue(toHTML(fragment)) + "\n");
+  logger.trace("component done:", `<${component.name} .. />`, "→", fragment);
+  // logger.trace("\n" + formatHTMLValue(toHTML(fragment)) + "\n");
   return childNodesOf(fragment);
 }
 
@@ -55,7 +55,7 @@ function processSlots(
   slotMap: Map<string, typeof SLOT_USED | HTMLSlotElement>,
   children: Node[]
 ) {
-  logger.debug(
+  logger.trace(
     `process slots for ${component.name}:`,
     "slots=\b",
     slotMap.keys(),
@@ -112,7 +112,7 @@ function replaceSlot(
     finalReplacement = replacement;
   }
 
-  logger.debug("replace slot", `'${slotName}'`, "with", finalReplacement);
+  logger.trace("replace slot", `'${slotName}'`, "with", finalReplacement);
   slot.replaceWith(...finalReplacement);
 
   slotMap.set(slotName, SLOT_USED);

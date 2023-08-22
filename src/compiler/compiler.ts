@@ -58,7 +58,7 @@ export function compile(
     "\nfile path:",
     filePath
   );
-  logger.trace("\n" + formatHTMLValue(source.trim()) + "\n");
+  // logger.trace("\n" + formatHTMLValue(source.trim()) + "\n");
 
   const sourceFragment = parse(source);
   let content = sourceFragment.cloneNode(true);
@@ -145,7 +145,7 @@ function processNode(
     styles: [],
   }
 ) {
-  logger.debug("process node:", node);
+  logger.trace("process node:", node);
   logger.group();
 
   let consumed = false;
@@ -156,10 +156,10 @@ function processNode(
 
   const detached = !node.parentNode && !isDocumentFragment(node);
   if (detached) {
-    logger.debug("detached from content");
+    logger.trace("detached from content");
     logger.groupEnd();
   } else if (consumed) {
-    logger.debug("consumed; ignore subnodes");
+    logger.trace("consumed; ignore subnodes");
     logger.groupEnd();
   } else {
     processShorthands(node, context);
@@ -203,10 +203,10 @@ function processShorthands(node: Node, context: Context): boolean {
         const scriptElement = createElement("script");
         scriptElement.setAttribute("render", "");
         scriptElement.appendChild(createTextNode(code));
-        logger.debug(`convert shorthand {${code}}`);
+        logger.trace(`convert shorthand {${code}}`);
         logger.group();
         processRenderScript(scriptElement);
-        logger.debug("converted shorthand →", scriptElement);
+        logger.trace("converted shorthand →", scriptElement);
         logger.groupEnd();
 
         builder.append(scriptElement);
@@ -271,7 +271,7 @@ function processElement(element: Element, context: Context): boolean {
       return true;
     case `${DZ_PREFIX}html`:
     case `${DZ_PREFIX}body`:
-      logger.debug("change to root here");
+      logger.trace("change to root here");
       context.contentRoot = element;
       return false;
     case `${DZ_PREFIX}head`:
@@ -302,7 +302,7 @@ function processElementAttrs(element: Element) {
       name = attr.name.substring(1);
       value = SCRIPT_DELIMITER_OPEN + attr.value + SCRIPT_DELIMITER_CLOSE;
 
-      logger.debug(
+      logger.trace(
         "convert attr shorthand",
         `${attr.name}="${attr.value}"`,
         "→",
@@ -339,7 +339,7 @@ function processScriptRenderAttribute(script: HTMLScriptElement) {
   } else {
     script.setAttribute("render", "expr");
   }
-  logger.debug(
+  logger.trace(
     "auto-detected render type as",
     `render="${script.getAttribute("render")}"`
   );
