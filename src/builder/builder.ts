@@ -214,6 +214,10 @@ function initBeautifyDefaults(
       }
     }
   }
+
+  if (!beautify.content_unformatted) {
+    beautify.content_unformatted = ["pre", "script", "style"];
+  }
 }
 
 function formatPath(p: string): string {
