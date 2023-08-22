@@ -202,6 +202,35 @@ describe("extractScriptBundles", () => {
     );
   });
 
+  it("extracts inline async module scripts in page", async () => {
+    const pageComponent = compile(
+      "pageWithInlineAsync",
+      `pageWithInlineAsync.html`,
+      `<html><head><script type="module" async>console.log("page1");</script><script type="module" async>console.log("page2");</script></head></html>`
+    );
+
+    const nodes = await new Renderer(new Map()).render(pageComponent);
+
+    const bundles = extractScriptBundles(
+      [
+        {
+          pagePath: pageComponent.filePath,
+          nodes,
+        },
+      ],
+      Infinity,
+      "scripts/",
+      components
+    );
+
+    expect(bundles).toHaveLength(2);
+    expect(bundles[0].code).toBe(`console.log("page1");`);
+    expect(bundles[1].code).toBe(`console.log("page2");`);
+    expect(toHTML(nodes)).toBe(
+      `<html><head><script type="module" async="" src="${bundles[0].src}"></script><script type="module" async="" src="${bundles[1].src}"></script></head><body></body></html>`
+    );
+  });
+
   async function createPage(components: Component[]): Promise<Page> {
     const componentsHTML = components
       .map((component) => `<${component.name}/>`)

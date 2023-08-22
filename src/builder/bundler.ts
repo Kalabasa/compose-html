@@ -108,6 +108,7 @@ function generateBundles(
   minPageUsage: number
 ) {
   const scriptBundles = new Map<string, Bundle>();
+  const pagesKeyCounters = new Map();
   for (const [scriptHTML, pages] of scriptPages.entries()) {
     const element = checkNotNull(scriptElements.get(scriptHTML));
 
@@ -120,7 +121,14 @@ function generateBundles(
     if (component) {
       src = component.name;
     } else {
-      src = pages.map((page) => page.pagePath.replaceAll(/\W/g, "_")).join("-");
+      const pagesKey = pages
+        .map((page) => page.pagePath.replaceAll(/\W/g, "_"))
+        .join("-");
+
+      const id = pagesKeyCounters.get(pagesKey) ?? 0;
+      pagesKeyCounters.set(pagesKey, id + 1);
+
+      src = pagesKey + (id > 0 ? "_" + id : "");
     }
 
     if (!src) continue;
