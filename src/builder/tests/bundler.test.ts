@@ -30,6 +30,11 @@ describe("extractScriptBundles", () => {
     "async.html",
     `<script client async>console.log("async");</script>`
   );
+  const moduleScriptComponent = compile(
+    "module",
+    "module.html",
+    `<script client type="module">console.log("module");</script>`
+  );
   const deferScriptComponent = compile(
     "defer",
     "defer.html",
@@ -41,6 +46,7 @@ describe("extractScriptBundles", () => {
     fooComponent,
     barComponent,
     bazComponent,
+    moduleScriptComponent,
     asyncScriptComponent,
     deferScriptComponent,
   ]);
@@ -94,6 +100,27 @@ describe("extractScriptBundles", () => {
     );
     expect(toHTML(pageWithFooBar.nodes)).toBe(
       `<html><head><script>console.log("bar");</script><script src="${bundles[0].src}"></script></head><body></body></html>`
+    );
+  });
+
+  it("bundles common module scripts", async () => {
+    const pageWithModule = await createPage([moduleScriptComponent]);
+    const pageWithModuleBar = await createPage([moduleScriptComponent, barComponent]);
+
+    const bundles = extractScriptBundles(
+      [pageWithModule, pageWithModuleBar],
+      2,
+      "scripts/",
+      components
+    );
+
+    expect(bundles).toHaveLength(1);
+    expect(bundles[0].code).toBe(`console.log("module");`);
+    expect(toHTML(pageWithModule.nodes)).toBe(
+      `<html><head><script type="module" src="${bundles[0].src}"></script></head><body></body></html>`
+    );
+    expect(toHTML(pageWithModuleBar.nodes)).toBe(
+      `<html><head><script>console.log("bar");</script><script type="module" src="${bundles[0].src}"></script></head><body></body></html>`
     );
   });
 

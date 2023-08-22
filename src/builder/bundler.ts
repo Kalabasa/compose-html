@@ -69,6 +69,11 @@ function mergeBundles(
 
   for (const [scriptHTML, bundle] of scriptBundles.entries()) {
     const element = checkNotNull(scriptElements.get(scriptHTML));
+
+    // todo: wrap modules in iife/whatever so they can be concat
+    // modules can't be contatenated
+    if (element.type === "module") continue;
+
     const loadingType =
       (element.hasAttribute("async") ? "a" : "s") +
       (element.hasAttribute("defer") ? "d" : "e");

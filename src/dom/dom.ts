@@ -54,7 +54,7 @@ export function isInlineJavaScriptElement(
   const type = node.getAttribute("type");
   return (
     node.tagName.toLowerCase() == "script" &&
-    ((!type && !src) || type === "text/javascript")
+    ((!type && !src) || type === "text/javascript" || type === "module")
   );
 }
 
