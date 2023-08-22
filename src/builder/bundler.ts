@@ -2,7 +2,7 @@ import { Component } from "compiler/component";
 import { createElement, isInlineJavaScriptElement } from "dom/dom";
 import path from "node:path";
 import { createLogger } from "util/log";
-import { check, checkNotNull } from "util/preconditions";
+import { checkNotNull } from "util/preconditions";
 
 export type Page = {
   pagePath: string;
