@@ -159,6 +159,7 @@ export async function build(options: BuildOptions = {}) {
     const nodes = await renderer.render(component, {
       rootDir: absRootDir,
       outputDir,
+      pagePath,
     });
 
     pages.push({
