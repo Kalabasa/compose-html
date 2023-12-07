@@ -164,7 +164,7 @@ export async function build(options: BuildOptions = {}) {
         path.relative(
           outputDir,
           outPath.endsWith("/index.html")
-            ? outPath.slice(0, -"/index.html".length) + "/"
+            ? outPath.slice(0, -"index.html".length)
             : outPath
         ),
     });
