@@ -19,7 +19,7 @@ export function createVM(
     url: makeURLFunc(context, component.filePath),
     __rootDir: context.rootDir,
     __outputDir: context.outputDir,
-    __pagePath: context.pagePath,
+    __urlPath: context.urlPath,
     ...jsContext,
   });
 

@@ -12,7 +12,7 @@ const logger = createLogger(path.basename(__filename, ".ts"));
 export type RenderContext = {
   rootDir: string;
   outputDir: string;
-  pagePath: string;
+  urlPath: string;
 };
 
 type Context = {
@@ -25,7 +25,7 @@ type Context = {
 export const nullRenderContext: RenderContext = {
   rootDir: "",
   outputDir: "",
-  pagePath: "",
+  urlPath: "",
 };
 
 export class Renderer {

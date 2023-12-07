@@ -21,12 +21,30 @@ exports[`builder builds project1 via api 1`] = `
 <body>
   <div class="header">
     <h1>About Project 1</h1>
-    <h2>about.html</h2>
+    <h2>URL path: /about.html</h2>
 
   </div>
   <div>This is a test project.</div>
   <button class="button">Fund</button>
   <script defer="" src="/scripts/x-button.js"></script>
+</body>
+</html>
+
+./blog/index.html:
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project 1 Blog</title>
+</head>
+<body>
+  <div class="header">
+    <h1>Project 1 Blog</h1>
+    <h2>URL path: /blog</h2>
+
+  </div>
+  <ul>
+    <li>Hello world!</li>
+  </ul>
 </body>
 </html>
 
@@ -60,7 +78,7 @@ exports[`builder builds project1 via api 1`] = `
 <body>
   <div class="header">
     <h1>Project 1</h1>
-    <h2>index.html</h2>
+    <h2>URL path: /</h2>
 
     <button class="button">Sign in</button>
     <button class="button">Log up</button>
@@ -110,12 +128,30 @@ exports[`builder builds project1 via cli 1`] = `
 <body>
   <div class="header">
     <h1>About Project 1</h1>
-    <h2>about.html</h2>
+    <h2>URL path: /about.html</h2>
 
   </div>
   <div>This is a test project.</div>
   <button class="button">Fund</button>
   <script defer="" src="/scripts/x-button.js"></script>
+</body>
+</html>
+
+./blog/index.html:
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project 1 Blog</title>
+</head>
+<body>
+  <div class="header">
+    <h1>Project 1 Blog</h1>
+    <h2>URL path: /blog</h2>
+
+  </div>
+  <ul>
+    <li>Hello world!</li>
+  </ul>
 </body>
 </html>
 
@@ -149,7 +185,7 @@ exports[`builder builds project1 via cli 1`] = `
 <body>
   <div class="header">
     <h1>Project 1</h1>
-    <h2>index.html</h2>
+    <h2>URL path: /</h2>
 
     <button class="button">Sign in</button>
     <button class="button">Log up</button>
@@ -199,12 +235,30 @@ exports[`builder builds project1 via config file 1`] = `
 <body>
   <div class="header">
     <h1>About Project 1</h1>
-    <h2>about.html</h2>
+    <h2>URL path: /about.html</h2>
 
   </div>
   <div>This is a test project.</div>
   <button class="button">Fund</button>
   <script defer="" src="/scripts/x-button.js"></script>
+</body>
+</html>
+
+./blog/index.html:
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project 1 Blog</title>
+</head>
+<body>
+  <div class="header">
+    <h1>Project 1 Blog</h1>
+    <h2>URL path: /blog</h2>
+
+  </div>
+  <ul>
+    <li>Hello world!</li>
+  </ul>
 </body>
 </html>
 
@@ -238,7 +292,7 @@ exports[`builder builds project1 via config file 1`] = `
 <body>
   <div class="header">
     <h1>Project 1</h1>
-    <h2>index.html</h2>
+    <h2>URL path: /</h2>
 
     <button class="button">Sign in</button>
     <button class="button">Log up</button>
@@ -288,7 +342,7 @@ exports[`builder builds project1 via config file with cli override 1`] = `
 <body>
   <div class="header">
     <h1>About Project 1</h1>
-    <h2>about.html</h2>
+    <h2>URL path: /about.html</h2>
 
   </div>
   <div>This is a test project.</div>
