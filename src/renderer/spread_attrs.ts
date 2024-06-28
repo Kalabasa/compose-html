@@ -1,30 +1,38 @@
-import { childNodesOf, isElement } from "dom/dom";
+import {
+  SCRIPT_DELIMITER_CLOSE,
+  SCRIPT_DELIMITER_OPEN,
+} from "compiler/compiler";
+import { check } from "util/preconditions";
+import { mapAttrsFromScript } from "./map_attrs";
 
-const SPREAD_ATTR_NAME = "{...attrs}";
-
-export function spreadAttrs(
-  root: Node | DocumentFragment,
-  attrs: Record<string, any>
-) {
-  if (isElement(root)) spreadAttrsForElement(root, attrs);
-  for (const node of childNodesOf(root)) {
-    spreadAttrs(node, attrs);
-  }
+export function isSpread(attr: Attr) {
+  return (
+    attr.name.startsWith(SCRIPT_DELIMITER_OPEN + "...") &&
+    attr.name.endsWith(SCRIPT_DELIMITER_CLOSE)
+  );
 }
 
-function spreadAttrsForElement(element: Element, attrs: Record<string, any>) {
-  for (const [name, value] of Array.from(element.attributes).map((attr) => [
-    attr.name,
-    attr.value,
-  ])) {
-    if (name === SPREAD_ATTR_NAME) {
-      element.removeAttribute(SPREAD_ATTR_NAME);
-      for (const [inName, inValue] of Object.entries(attrs)) {
-        element.setAttribute(inName, inValue);
-      }
-    } else {
-      // re-set to keep order
-      element.setAttribute(name, value);
-    }
+export async function spreadAttrToAttrs(
+  attr: Attr,
+  runCode: (code: string) => unknown
+) {
+  check(isSpread(attr));
+
+  const expr = attr.name.slice(4, -1);
+  const map = await runCode(`(async function(){ return ${expr} })()`);
+
+  if (map && typeof map === "object") {
+    return toAttrs(map).map(([name, value]) => ({
+      name,
+      value,
+    }));
   }
+
+  return [];
+}
+
+export function toAttrs(object: object) {
+  return Object.entries(mapAttrsFromScript(object)).filter(
+    ([, value]) => value != null
+  );
 }

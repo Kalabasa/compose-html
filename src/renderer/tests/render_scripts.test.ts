@@ -177,4 +177,48 @@ describe("render_scripts", () => {
 
     expect(toHTML(content)).toBe(`:foo::bar:`);
   });
+
+  it("renders arbitrary objects spreaded as attributes", async () => {
+    const content = parse(`\
+<script render="func">
+  return html\`<div {...map}>My content</div>\`;
+</script>`);
+
+    const component = compile(
+      "test",
+      "test.html",
+      `\
+<script static="">
+  const map = {
+    'class': 'foo',
+    ariaLabel: 'My label',
+    hideMe: null,
+  };
+</script>`
+    );
+
+    await evaluateScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe(
+      '<div class="foo" aria-label="My label">My content</div>'
+    );
+  });
+
+  it("renders spreadAttrs function", async () => {
+    const content = parse(`\
+<script render="func">
+  const map = {
+    'class': 'foo',
+    ariaLabel: 'My label',
+    hideMe: null,
+  };
+  return html\`<div \${spreadAttrs(map)}>My content</div>\`;
+</script>`);
+
+    await evaluateScripts(content, component, {}, [], renderList);
+
+    expect(toHTML(content)).toBe(
+      '<div class="foo" aria-label="My label">My content</div>'
+    );
+  });
 });

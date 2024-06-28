@@ -1,10 +1,10 @@
 import { Component } from "compiler/component";
-import { childNodesOf, isElement, isTemplateElement, toHTML } from "dom/dom";
+import { childNodesOf, isElement, isTemplateElement } from "dom/dom";
 import path from "node:path";
-import { createLogger, formatHTMLValue } from "util/log";
+import { createLogger } from "util/log";
 import { check, checkNotNull } from "util/preconditions";
-import { nullRenderContext, RenderContext } from "./renderer";
 import { evaluateScripts } from "./render_scripts";
+import { RenderContext, nullRenderContext } from "./renderer";
 
 const DEFAULT_SLOT_NAME = "default";
 

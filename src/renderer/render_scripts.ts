@@ -17,9 +17,9 @@ import { createLogger, formatJSValue } from "util/log";
 import { check } from "util/preconditions";
 import { mapAttrsForScript } from "./map_attrs";
 import { isRawHTML, rawHTMLTag } from "./raw_html";
-import { nullRenderContext, RenderContext } from "./renderer";
-import { spreadAttrs } from "./spread_attrs";
-import { createVM, VM } from "./vm";
+import { RenderContext, nullRenderContext } from "./renderer";
+import { isSpread, spreadAttrToAttrs, toAttrs } from "./spread_attrs";
+import { VM, createVM } from "./vm";
 
 const logger = createLogger(path.basename(__filename, ".ts"));
 
@@ -36,10 +36,11 @@ export async function evaluateScripts(
     html: createHTMLTag(attrs, () => vm, render),
     raw: rawHTMLTag,
     attrs: mapAttrsForScript(attrs),
+    spreadAttrs: createAttrSpreader(),
     children, // todo: make immutable when exposed
   });
   runStaticScripts(component, vm);
-  await evaluateFragment(inOutFragment, attrs, vm);
+  await evaluateFragment(inOutFragment, vm);
 }
 
 function runStaticScripts(component: Component, vm: VM) {
@@ -55,19 +56,7 @@ function runStaticScripts(component: Component, vm: VM) {
   }
 }
 
-async function evaluateFragment(
-  inOutFragment: DocumentFragment,
-  attrs: Record<string, any>,
-  vm: VM
-) {
-  spreadAttrs(inOutFragment, attrs);
-  await renderScripts(inOutFragment, vm);
-}
-
-async function renderScripts(
-  inOutFragment: DocumentFragment,
-  vm: VM
-): Promise<void> {
+async function evaluateFragment(inOutFragment: DocumentFragment, vm: VM) {
   for (const node of stableChildNodesOf(inOutFragment)) {
     await renderNode(node, vm.runCode);
   }
@@ -98,14 +87,32 @@ async function renderElementAttrs(
   inOutElement: Element,
   runCode: (code: string) => unknown
 ) {
-  for (const attr of Array.from(inOutElement.attributes)) {
-    let renderedAttrValue = await renderAttrValueIfDynamic(attr.value, runCode);
-    if (renderedAttrValue) {
-      const { value } = renderedAttrValue;
-      if (value == null) {
-        inOutElement.removeAttribute(attr.name);
+  const snapshot = Array.from(inOutElement.attributes).map((attr) =>
+    attr.cloneNode()
+  );
+
+  for (const attr of snapshot) {
+    if (isSpread(attr)) {
+      inOutElement.removeAttribute(attr.name);
+      const newAttrs = await spreadAttrToAttrs(attr, runCode);
+      for (const newAttr of newAttrs) {
+        inOutElement.setAttribute(newAttr.name, String(newAttr.value));
+      }
+    } else {
+      let renderedAttrValue = await renderAttrValueIfDynamic(
+        attr.value,
+        runCode
+      );
+      if (renderedAttrValue) {
+        const { value } = renderedAttrValue;
+        if (value == null) {
+          inOutElement.removeAttribute(attr.name);
+        } else {
+          inOutElement.setAttribute(attr.name, String(value));
+        }
       } else {
-        inOutElement.setAttribute(attr.name, String(value));
+        // re-set to preserve order
+        inOutElement.setAttribute(attr.name, attr.value);
       }
     }
   }
@@ -165,11 +172,22 @@ function createHTMLTag(
 
     const raw = await rawHTMLTag(segments, ...expressions);
     const fragment = parse(raw.html);
-    await evaluateFragment(fragment, attrs, getVM());
+    await evaluateFragment(fragment, getVM());
     const result = await render(childNodesOf(fragment));
 
     logger.groupEnd();
     return result;
+  };
+}
+
+function createAttrSpreader(): (object: object) => string {
+  return (object: object) => {
+    check(typeof object === "object");
+    if (!object) return "";
+
+    return toAttrs(object)
+      .map(([name, value]) => `${name}="${value}"`)
+      .join(" ");
   };
 }
 
