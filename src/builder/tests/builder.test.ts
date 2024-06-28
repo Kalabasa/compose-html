@@ -11,7 +11,7 @@ describe("builder", () => {
 
   const topDir = resolve(__dirname, "../../..");
   const projects = ["project1", "project2"];
-  const exclude = ["**/dont-process.html"];
+  const excludeHtml = ["**/dont-process.html"];
 
   beforeAll(() =>
     inDir(topDir, () => {
@@ -26,7 +26,7 @@ describe("builder", () => {
         await build({
           inputDir,
           outputDir,
-          exclude,
+          excludeHtml,
         });
         expect(filesToString(outputDir)).toMatchSnapshot();
       })
@@ -41,7 +41,7 @@ describe("builder", () => {
           "node dist/bin/main.js" +
             ` -i ${relative(process.cwd(), inputDir)}` +
             ` -o ${outputDir}` +
-            ` --exclude ${exclude.map((p) => `'${p}' `)}`
+            ` --exclude-html ${excludeHtml.map((p) => `'${p}' `)}`
         );
         expect(filesToString(outputDir)).toMatchSnapshot();
       })
@@ -56,7 +56,7 @@ describe("builder", () => {
           JSON.stringify({
             inputDir,
             outputDir,
-            exclude,
+            excludeHtml,
           }),
           (configFile) => {
             run(`node dist/bin/main.js --config ${configFile}`);
@@ -77,7 +77,7 @@ describe("builder", () => {
             JSON.stringify({
               inputDir,
               outputDir,
-              exclude,
+              excludeHtml,
             }),
             (configFile) => {
               run(`node dist/bin/main.js --config ${configFile} -p about`);

@@ -10,7 +10,7 @@ program
   .option("-i, --input <dir>")
   .option("-o, --output <dir>")
   .option("-p, --page-pattern <pattern>")
-  .option("--exclude <pattern...>")
+  .option("--exclude-html <pattern...>")
   .option("--root <dir>")
   .parse();
 
@@ -21,7 +21,7 @@ if (configPath) {
   setOptionFromConfigValue("output", config.outputDir);
   setOptionFromConfigValue("root", config.rootDir);
   setOptionFromConfigValue("pagePattern", config.pagePattern);
-  setOptionFromConfigValue("exclude", config.exclude);
+  setOptionFromConfigValue("excludeHtml", config.excludeHtml);
 }
 
 const options = program.opts();
@@ -29,9 +29,9 @@ const inputDir = resolveDirOption(options.input);
 const outputDir = resolveDirOption(options.output);
 const rootDir = resolveDirOption(options.root);
 const pagePattern = options.pagePattern;
-const exclude =
-  options.exclude &&
-  options.exclude.map((p: string) => path.resolve(process.cwd(), p));
+const excludeHtml =
+  options.excludeHtml &&
+  options.excludeHtml.map((p: string) => path.resolve(process.cwd(), p));
 
 if (inputDir) {
   check(lstatSync(inputDir).isDirectory, `Bad input directory: ${inputDir}`);
@@ -42,7 +42,7 @@ build({
   outputDir,
   rootDir,
   pagePattern,
-  exclude,
+  excludeHtml,
 });
 
 function resolveDirOption(value: string) {

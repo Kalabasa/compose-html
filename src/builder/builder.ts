@@ -15,7 +15,7 @@ type BuildOptions = {
   outputDir?: string;
   rootDir?: string;
   pagePattern?: string;
-  exclude?: string[];
+  excludeHtml?: string[];
   beautify?: HTMLBeautifyOptions | false;
 };
 
@@ -35,7 +35,7 @@ export async function build(options: BuildOptions = {}) {
     outputDir,
     rootDir: rootDirOption,
     pagePattern,
-    exclude,
+    excludeHtml,
     beautify,
   } = Object.assign({}, DEFAULT_OPTIONS, options);
   const rootDir = rootDirOption ?? inputDir;
@@ -60,7 +60,7 @@ export async function build(options: BuildOptions = {}) {
     : () => true;
 
   /** @type {glob.IOptions} */
-  const htmlGlobOptions = { nodir: true, ignore: exclude };
+  const htmlGlobOptions = { nodir: true, ignore: excludeHtml };
   const htmlFiles = glob.sync(
     path.resolve(inputDir, "**/*.html"),
     htmlGlobOptions
