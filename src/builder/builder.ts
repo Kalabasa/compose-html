@@ -15,7 +15,8 @@ type BuildOptions = {
   outputDir?: string;
   rootDir?: string;
   pagePattern?: string;
-  excludeHtml?: string[];
+  plainHtml?: string[];
+  ignore?: string[];
   beautify?: HTMLBeautifyOptions | false;
 };
 
@@ -35,7 +36,8 @@ export async function build(options: BuildOptions = {}) {
     outputDir,
     rootDir: rootDirOption,
     pagePattern,
-    excludeHtml,
+    plainHtml,
+    ignore,
     beautify,
   } = Object.assign({}, DEFAULT_OPTIONS, options);
   const rootDir = rootDirOption ?? inputDir;
@@ -60,13 +62,16 @@ export async function build(options: BuildOptions = {}) {
     : () => true;
 
   /** @type {glob.IOptions} */
-  const htmlGlobOptions = { nodir: true, ignore: excludeHtml };
+  const htmlGlobOptions = {
+    nodir: true,
+    ignore: [...(plainHtml ?? []), ...(ignore ?? [])],
+  };
   const htmlFiles = glob.sync(
     path.resolve(inputDir, "**/*.html"),
     htmlGlobOptions
   );
   const nonHTMLFiles = glob
-    .sync(path.resolve(rootDir, "**/*"), { nodir: true })
+    .sync(path.resolve(rootDir, "**/*"), { nodir: true, ignore })
     .filter((f) => !htmlFiles.includes(f));
   logger.info(htmlFiles.length, "html files");
   logger.info(nonHTMLFiles.length, "non-html files");
