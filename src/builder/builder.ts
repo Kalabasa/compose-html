@@ -70,9 +70,11 @@ export async function build(options: BuildOptions = {}) {
     path.resolve(inputDir, "**/*.html"),
     htmlGlobOptions
   );
-  const nonHTMLFiles = glob
-    .sync(path.resolve(rootDir, "**/*"), { nodir: true, ignore })
-    .filter((f) => !htmlFiles.includes(f));
+  const globOpts = { nodir: true, ignore };
+  const nonHTMLFiles = [
+    ...glob.sync(path.resolve(rootDir, "**/*"), globOpts),
+    ...glob.sync(path.resolve(rootDir, ".well-known/**/*"), globOpts),
+  ].filter((f) => !htmlFiles.includes(f));
   logger.info(htmlFiles.length, "html files");
   logger.info(nonHTMLFiles.length, "non-html files");
 
